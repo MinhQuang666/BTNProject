@@ -197,17 +197,19 @@ function renderPagination(totalPages, currentPage) {
 
 // Hiển thị form nhập thông tin
 function showForm() {
-    // Ẩn nút Thêm container
-    document.getElementById('showFormButton').style.display = 'none';
-
     // Hiển thị form nhập thông tin
     document.getElementById('containerForm').style.display = 'block';
+    document.getElementById('formButtons').style.display = 'block';
+
+    // Ẩn nút Thêm container
+    document.getElementById('showFormButton').style.display = 'none';
 }
 
 // Ẩn form nhập thông tin
 function hideForm() {
     // Ẩn form nhập thông tin
     document.getElementById('containerForm').style.display = 'none';
+    document.getElementById('formButtons').style.display = 'none';
 
     // Hiển thị lại nút Thêm container
     document.getElementById('showFormButton').style.display = 'block';

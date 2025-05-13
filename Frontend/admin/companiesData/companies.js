@@ -130,13 +130,23 @@ function renderPagination(totalPages, currentPage, fetchFunction) {
 }
 
 function showForm() {
-    document.getElementById('showFormButton').style.display = 'none';
+    // Hiển thị form nhập thông tin
     document.getElementById('companyForm').style.display = 'block';
+    document.getElementById('formButtons').style.display = 'block';
+
+    // Ẩn nút Thêm công ty
+    document.getElementById('showFormButton').style.display = 'none';
 }
 
 function hideForm() {
+    // Ẩn form nhập thông tin
     document.getElementById('companyForm').style.display = 'none';
+    document.getElementById('formButtons').style.display = 'none';
+
+    // Hiển thị lại nút Thêm công ty
     document.getElementById('showFormButton').style.display = 'block';
+
+    // Xóa dữ liệu trong form
     document.getElementById('companyForm').reset();
 }
 

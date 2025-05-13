@@ -28,17 +28,21 @@
 <h1>Quản lý Công ty</h1>
 
 <div id="controls">
-    <input type="text" id="searchInput" placeholder="Tìm kiếm công ty..." onkeyup="searchCompany()">
     <button id="refreshButton" type="button" onclick="refreshData()">Làm mới dữ liệu</button>
+    <input type="text" id="searchInput" placeholder="Tìm kiếm công ty..." onkeyup="searchCompany()">
     <button id="showFormButton" type="button" onclick="showForm()">Thêm Công ty</button>
 </div>
 
 <form id="companyForm" style="display: none;">
     <label for="companyName">Tên Công ty:</label>
     <input type="text" id="companyName" name="companyName" required>
+</form>
+
+<!-- Nút Lưu và Hủy nằm ngoài form -->
+<div id="formButtons" style="display: none; text-align: center; margin-top: 10px;">
     <button type="button" onclick="addCompany()">Lưu</button>
     <button type="button" onclick="hideForm()">Hủy</button>
-</form>
+</div>
 
 <table>
     <thead>

@@ -31,10 +31,10 @@
 
     <!-- Container cho nút Thêm container và thanh tìm kiếm -->
     <div id="controls">
-        <!-- Thanh tìm kiếm -->
-        <input type="text" id="searchInput" placeholder="Tìm kiếm container..." onkeyup="searchContainer()">
-        <!-- Nút Refresh -->
+         <!-- Nút Refresh -->
         <button id="refreshButton" type="button" onclick="refreshData()">Làm mới dữ liệu</button>
+        <!-- Thanh tìm kiếm -->
+        <input type="text" id="searchInput" placeholder="Tìm kiếm container..." onkeyup="searchContainer()"> 
         <!-- Nút Thêm container -->
         <button id="showFormButton" type="button" onclick="showForm()">Thêm Container</button>
         <!-- Nút liên kết với trang codecontainerOwner.html -->
@@ -52,10 +52,13 @@
             <option value="20">20'</option>
             <option value="45">45'</option>
         </select>
-        
+    </form>
+
+    <!-- Nút Lưu và Hủy nằm ngoài form -->
+    <div id="formButtons" style="display: none; text-align: center; margin-top: 10px;">
         <button type="button" onclick="addContainer()">Lưu</button>
         <button type="button" onclick="hideForm()">Hủy</button>
-    </form>
+    </div>
 
     <!-- Bảng hiển thị dữ liệu container -->
     <table>

@@ -4,7 +4,7 @@ DROP TABLE locations;
 DROP TABLE containers;
 DROP TABLE container_transactions;
 DROP TABLE container_owners;
-SELECT * FROM container
+SELECT * FROM containers
 SELECT * FROM transporters;
 SELECT * FROM locations;
 SELECT * FROM container_owners;
@@ -29,7 +29,6 @@ CREATE TABLE container_owners (
     name VARCHAR(255) NOT NULL -- Tên chủ sở hữu
 );
 
-DROP TABLE IF EXISTS containers;
 
 CREATE TABLE containers (
     id SERIAL PRIMARY KEY, -- ID tự động tăng
