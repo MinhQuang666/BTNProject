@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/Frontend/admin/synAdmin.css">
+    <script src="containerData.js" defer></script>
+    <title>Quản lý Container</title>
+</head>
+<body>
+<header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="/Frontend/admin/AdminHome/adminHome.html">Trang chủ</a></li>
+            <li><a href="/Frontend/admin/Dashboard/adminDashboard.html">Dashboard</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle active">Quản lý Container</a>
+                <ul class="dropdown-menu">
+                    <li><a href="/Frontend/admin/containerData/containerdata.html"class="active">Quản lý Container</a></li>
+                    <li><a href="/Frontend/admin/companiesData/companies.html">Quản lý Công Ty Thuê</a></li>
+                    <li><a href="/Frontend/admin/locationsData/locations.html">Quản lý Địa điểm</a></li>
+                    <li><a href="/Frontend/admin/transportersData/transporters.html">Quản lý Nhà xe</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+    <h1>Quản lý Dữ liệu Container</h1>
+
+    <!-- Container cho nút Thêm container và thanh tìm kiếm -->
+    <div id="controls">
+        <!-- Thanh tìm kiếm -->
+        <input type="text" id="searchInput" placeholder="Tìm kiếm container..." onkeyup="searchContainer()">
+        <!-- Nút Refresh -->
+        <button id="refreshButton" type="button" onclick="refreshData()">Làm mới dữ liệu</button>
+        <!-- Nút Thêm container -->
+        <button id="showFormButton" type="button" onclick="showForm()">Thêm Container</button>
+        <!-- Nút liên kết với trang codecontainerOwner.html -->
+        <button id="ownerPageButton" type="button" onclick="window.location.href='/Frontend/admin/containerData/codecontainerData/codecontainerOwner.html'">Quản lý Chủ sở hữu Container</button>
+    </div>
+
+    <!-- Form nhập thông tin container (ẩn ban đầu) -->
+    <form id="containerForm" style="display: none;">
+        <label for="containerId">Mã số container:</label>
+        <input type="text" id="containerId" name="containerId" required>
+        
+        <label for="containerSize">Kích cỡ:</label>
+        <select id="containerSize" name="containerSize" required>
+            <option value="40">40'</option>
+            <option value="20">20'</option>
+            <option value="45">45'</option>
+        </select>
+        
+        <button type="button" onclick="addContainer()">Lưu</button>
+        <button type="button" onclick="hideForm()">Hủy</button>
+    </form>
+
+    <!-- Bảng hiển thị dữ liệu container -->
+    <table>
+        <thead>
+            <tr>
+                <th>Mã Container</th>
+                <th>Kích cỡ</th>
+                <th>Code Công Ty</th>
+                <th>Tên Công Ty</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="containerTableBody">
+            <!-- Dữ liệu sẽ được thêm vào đây -->
+        </tbody>
+    </table>
+
+    <!-- Phân trang -->
+    <div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+</main>
+</body>
+</html>

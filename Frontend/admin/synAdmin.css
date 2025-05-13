@@ -1,0 +1,311 @@
+/* Tổng quan */
+body {
+    background-color: #f4f4f4;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    box-sizing: border-box;
+}
+
+header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 36px;
+    margin: 0;
+}
+
+.navbar {
+    background-color: #333;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.navbar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.navbar ul li {
+    position: relative; /* Để menu con được định vị tương đối với menu cha */
+}
+
+.navbar ul li a {
+    text-decoration: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.navbar ul li a:hover,
+.navbar ul li a.active {
+    background-color: #07e40e;
+    color: white;
+}
+
+/* Dropdown menu */
+.navbar ul li .dropdown-menu {
+    display: none; /* Ẩn menu con mặc định */
+    position: absolute; /* Định vị menu con */
+    top: 150%; /* Đặt menu con ngay dưới menu cha */
+    left: 0;
+    background-color: #333; /* Màu nền menu con */
+    padding: 10px 0;
+    list-style: none;
+    border-radius: 5px;
+    z-index: 1000; /* Đảm bảo menu con nằm trên các phần tử khác */
+}
+
+.navbar ul li .dropdown-menu li {
+    padding: 5px 20px;
+    width: 200px;
+}
+
+.navbar ul li .dropdown-menu li a {
+    text-decoration: none;
+    color: white;
+    display: block;
+    transition: background-color 0.3s;
+}
+
+.navbar ul li .dropdown-menu li a:hover {
+    background-color: #11ec15; /* Màu nền khi hover */
+}
+
+/* Đảm bảo trạng thái active cho menu con */
+.navbar ul li .dropdown-menu li a.active {
+    background-color: #07e40e; /* Màu nền khi active */
+    color: white; /* Màu chữ khi active */
+}
+
+/* Hiển thị menu con khi hover */
+.navbar ul li:hover .dropdown-menu {
+    display: block; /* Hiển thị menu con */
+}
+
+/* Controls */
+#controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px auto;
+    padding: 10px;
+    max-width: 800px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+#controls input {
+    flex: 1;
+    padding: 10px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#controls button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    margin: 5px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#controls button:hover {
+    background-color: #07f713;
+}
+
+/* Form */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Căn giữa các trường nhập liệu */
+    gap: 10px;
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 400px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+form label {
+    font-weight: bold;
+    text-align: center;
+    display: block;
+    width: 100%; /* Đảm bảo nhãn căn giữa */
+}
+
+form input {
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%; /* Đảm bảo input chiếm toàn bộ chiều rộng */
+    max-width: 375px; /* Giới hạn chiều rộng tối đa */
+}
+
+form select {
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Nút Lưu và Hủy */
+#formButtons {
+    margin-top: 10px;
+    text-align: center;
+}
+
+#formButtons button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#formButtons button:hover {
+    background-color: #45a049;
+}
+
+/* Table */
+table {
+    width: 90%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+table th, table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tr:hover {
+    background-color: #40ec0c;
+}
+
+table td {
+    text-align: center;
+}
+
+table .actions button.delete {
+    background-color: #FF5722;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+table .actions button:hover {
+    background-color: #E64A19;
+}
+
+/* Pagination */
+#pagination {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+#pagination button {
+    background-color: #d7e2d7;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin: 0 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#pagination button.active {
+    background-color: #04ec04;
+    font-weight: bold;
+}
+
+#pagination button:hover {
+    background-color: #07f013;
+}
+
+/* Thiết kế lại thẻ h1 */
+h1 {
+    font-size: 48px; /* Kích thước chữ lớn hơn */
+    font-weight: bold; /* Chữ đậm */
+    text-align: center; /* Căn giữa */
+    color: #000000; /* Màu chữ mặc định */
+    text-transform: uppercase; /* Chuyển chữ thành in hoa */
+    letter-spacing: 2px; /* Khoảng cách giữa các chữ */
+    margin: 20px 0; /* Khoảng cách trên và dưới */
+    position: relative; /* Để thêm hiệu ứng */
+    transition: color 0.3s ease; /* Hiệu ứng chuyển màu mượt */
+}
+
+/* Thêm gạch chân trang trí */
+h1::after {
+    content: '';
+    display: block;
+    width: 100px; /* Độ dài gạch chân mặc định */
+    height: 4px; /* Độ dày gạch chân */
+    background-color: #060806; /* Màu gạch chân mặc định */
+    margin: 10px auto 0; /* Căn giữa gạch chân */
+    border-radius: 2px; /* Bo góc gạch chân */
+    transition: all 0.3s ease; /* Hiệu ứng mượt cho gạch chân */
+}
+
+/* Hiệu ứng hover cho h1 */
+h1:hover {
+    color: #45a049; /* Đổi màu chữ khi hover */
+}
+
+h1:hover::after {
+    background-color: #45a049; /* Đổi màu gạch chân khi hover */
+    width: 500px; /* Tăng độ dài gạch chân khi hover */
+}
+
+/* Căn giữa văn bản trong input */
+input[type="text"], select {
+    text-align: center; /* Căn giữa văn bản */
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%; /* Đảm bảo input chiếm toàn bộ chiều rộng */
+    max-width: 1000px; /* Giới hạn chiều rộng tối đa */
+    box-sizing: border-box; /* Đảm bảo padding không làm tăng kích thước */
+}

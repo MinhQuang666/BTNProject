@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/Frontend/syntemplate/syn.css">
+<script src="/Frontend/syntemplate/syn.js" defer></script>
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js" defer></script>
+    <title>Admin</title>
+</head>
+<body>
+    <header>
+        <h1>
+            <span class="green">Admin</span>
+        </h1>
+        <nav class="navbar">
+            <ul>
+                <li><a href="/Frontend/admin/AdminHome/adminHome.html" class="active">Xem trang chủ</a></li>
+                <li><a href="/Frontend/admin/Dashboard/adminDashboard.html">Dashboard</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">Quản lý</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/Frontend/admin/containerData/containerdata.html">Quản lý Container</a></li>
+                        <li><a href="/Frontend/admin/companiesData/companies.html">Quản lý Công Ty Thuê</a></li>
+                        <li><a href="/Frontend/admin/locationsData/locations.html">Quản lý Địa điểm</a></li>
+                        <li><a href="/Frontend/admin/transportersData/transporters.html">Quản lý Nhà xe</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="intro">
+            <h2>Chào mừng đến với Công ty Vận tải 
+                <span class="green">Bắc</span> - 
+                <span class="green">Trung</span> - 
+                <span class="green">Nam</span>
+            </h2>
+            <p>Chúng tôi cung cấp các dịch vụ vận tải hàng hóa quốc tế với chất lượng cao.</p>
+        </section>
+
+        <section id="services">
+            <h2>Dịch vụ của chúng tôi</h2>
+            <ul>
+                <li>Vận tải đường biển</li>
+                <li>Vận tải đường bộ</li>
+                <li>Vận tải đường hàng không</li>
+                <li>Quản lý container</li>
+            </ul>
+        </section>
+
+        <section id="why-us">
+            <h2>Tại sao chọn chúng tôi?</h2>
+            <p>Với hơn 20 năm kinh nghiệm trong ngành, chúng tôi cam kết mang đến cho khách hàng sự hài lòng tuyệt đối.</p>
+        </section>
+
+        <section id="carousel">
+    <div class="swiper-container">
+        <div class="swiper-wrapper">
+            <!-- Slide 1 -->
+            <div class="swiper-slide">
+                <img src="/Frontend/img/cont1.jpg" alt="Slide 1">
+                <div class="caption">Dịch vụ vận tải đường biển</div>
+            </div>
+            <!-- Slide 2 -->
+            <div class="swiper-slide">
+                <img src="/Frontend/img/cont2.jpg" alt="Slide 2">
+                <div class="caption">Dịch vụ vận tải đường bộ</div>
+            </div>
+            <!-- Slide 3 -->
+            <div class="swiper-slide">
+                <img src="/Frontend/img/cont3.jpg" alt="Slide 3">
+                <div class="caption">Dịch vụ vận tải đường hàng không</div>
+            </div>
+        </div>
+        <!-- Nút điều hướng -->
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+        <!-- Thanh chỉ báo -->
+        <div class="swiper-pagination"></div>
+    </div>
+</section>
+    </main>
+
+    <footer>
+    <div class="footer-container">
+        <div class="footer-section">
+            <h3>Về chúng tôi</h3>
+            <p>Công ty TNHH Bắc Trung Nam chuyên cung cấp các dịch vụ vận tải hàng hóa quốc tế với chất lượng cao và giá cả cạnh tranh.</p>
+        </div>
+        <div class="footer-section">
+            <h3>Liên kết nhanh</h3>
+            <ul>
+                <li><a href="../homeData/home.html">Trang chủ</a></li>
+                <li><a href="../containerdata/containerdata.html">Quản lý Container</a></li>
+                <li><a href="../about/about.html">Giới thiệu</a></li>
+                <li><a href="/Frontend/contactData/contact.html">Liên hệ</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h3>Liên hệ</h3>
+            <p>Email: info@bactrungnam.com</p>
+            <p>Điện thoại: +84 123 456 789</p>
+            <p>Đ/c: Số nhà 34, Đường N4, Khu nhà ở Thương mại dịch vụ Phú Mỹ, Tổ 23, Khu phố 5, Phường Phú Mỹ, Thành phố Thủ Dầu Một, Tỉnh Bình Dương, Việt Nam</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 Công ty TNHH Bắc Trung Nam. Mọi quyền được bảo lưu.</p>
+    </div>
+</footer>
+</body>
+</html>

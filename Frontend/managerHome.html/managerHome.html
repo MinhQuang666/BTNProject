@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/Frontend/managerHome.html/managerHome.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script> <!-- Thư viện Chart.js -->
+    <script src="/Frontend/managerHome.html/managerHome.js" defer></script>
+    <title>Dashboard Quản lý - Công ty Bắc Trung Nam</title>
+</head>
+<body>
+    <header>
+        <h1>
+            <span class="green">Dashboard Quản lý</span>
+        </h1>
+        <nav class="navbar">
+            <ul>
+                <li><a href="/Frontend/manager/managerHome.html" class="active">Trang chủ</a></li>
+                <li><a href="/Frontend/reportData/report.html">Xem báo cáo</a></li>
+                <li><a href="/Frontend/costData/cost.html">Quản lý chi phí</a></li>
+                <li><a href="/Frontend/progress/progress.html">Xem tiến độ công việc</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <!-- Tổng quan -->
+        <section id="overview">
+            <h2>Tổng quan</h2>
+            <div class="cards">
+                <div class="card revenue">
+                    <h3>Doanh thu</h3>
+                    <p>1,000,000,000 VND</p>
+                </div>
+                <div class="card cost">
+                    <h3>Chi phí</h3>
+                    <p>500,000,000 VND</p>
+                </div>
+                <div class="card progress">
+                    <h3>Tiến độ công việc</h3>
+                    <p>80% hoàn thành</p>
+                </div>
+            </div>
+        </section>
+        <!-- Biểu đồ tổng quan và container hôm nay -->
+        <section id="charts-container">
+            <!-- Biểu đồ tổng quan -->
+            <div id="chart-overview">
+                <h2>Biểu đồ Tổng Quan</h2>
+                <canvas id="overviewChart" width="400" height="200"></canvas>
+            </div>
+        
+            <!-- Biểu đồ tổng số container hôm nay -->
+            <div id="today-containers-chart">
+                <h2>Biểu đồ Container Hôm Nay</h2>
+                <canvas id="todayContainersChart" width="400" height="200"></canvas>
+            </div>
+        </section>
+        <!-- Hoạt động mới nhất -->
+        <section id="latest-activities">
+            <h2>Hoạt động mới nhất</h2>
+            <div class="activity-container">
+                <ul>
+                    <li>Nhân viên A đã cập nhật trạng thái container #1234</li>
+                    <li>Nhân viên B đã thêm khách hàng mới</li>
+                    <li>Nhân viên C đã gửi báo cáo tháng 3</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Container hôm nay -->
+        <section id="today-containers">
+            <h2>Container hôm nay</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã Container</th>
+                        <th>Trạng thái</th>
+                        <th>Thời gian cập nhật</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#1234</td>
+                        <td>Đang vận chuyển</td>
+                        <td>08:30 AM</td>
+                    </tr>
+                    <tr>
+                        <td>#5678</td>
+                        <td>Đã giao hàng</td>
+                        <td>10:15 AM</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+
+    </main>
+    <footer>
+        <p>&copy; 2025 Công ty TNHH Bắc Trung Nam. Mọi quyền được bảo lưu.</p>
+    </footer>
+</body>
+</html>

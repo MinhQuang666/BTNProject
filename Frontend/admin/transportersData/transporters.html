@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/Frontend/admin/synAdmin.css">
+    <script src="transporters.js" defer></script>
+    <title>Quản lý Nhà Xe</title>
+</head>
+<body>
+<header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="/Frontend/admin/AdminHome/adminHome.html">Trang chủ</a></li>
+            <li><a href="/Frontend/admin/Dashboard/adminDashboard.html">Dashboard</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle active">Quản lý Nhà xe</a>
+                <ul class="dropdown-menu">
+                    <li><a href="/Frontend/admin/containerData/containerdata.html">Quản lý Container</a></li>
+                    <li><a href="/Frontend/admin/companiesData/companies.html">Quản lý Công Ty Thuê</a></li>
+                    <li><a href="/Frontend/admin/locationsData/locations.html">Quản lý Địa điểm</a></li>
+                    <li><a href="/Frontend/admin/transportersData/transporters.html"class="active">Quản lý Nhà xe</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</header>
+<h1>Quản lý Nhà Xe</h1>
+
+<div id="controls">
+    <input type="text" id="searchInput" placeholder="Tìm kiếm nhà xe..." onkeyup="searchTransporter()">
+    <button id="refreshButton" type="button" onclick="refreshData()">Làm mới dữ liệu</button>
+    <button id="showFormButton" type="button" onclick="showForm()">Thêm Nhà Xe</button>
+</div>
+
+<form id="transporterForm" style="display: none;">
+    <label for="transporterId">ID Nhà Xe:</label>
+    <input type="text" id="transporterId" name="transporterId" required>
+
+    <label for="transporterName">Tên Nhà Xe:</label>
+    <input type="text" id="transporterName" name="transporterName" required>
+</form>
+
+<!-- Nút Lưu và Hủy nằm ngoài form -->
+<div id="formButtons" style="display: none; text-align: center;">
+    <button type="button" onclick="addTransporter()">Lưu</button>
+    <button type="button" onclick="hideForm()">Hủy</button>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên Nhà Xe</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="transporterTableBody">
+        <!-- Data will be added here -->
+    </tbody>
+</table>
+
+<div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/Frontend/admin/synAdmin.css">
+    <script src="locations.js" defer></script>
+    <title>Quản lý Địa điểm</title>
+</head>
+<body>
+<header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="/Frontend/admin/AdminHome/adminHome.html">Trang chủ</a></li>
+            <li><a href="/Frontend/admin/Dashboard/adminDashboard.html">Dashboard</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle active">Quản lý Địa điểm</a>
+                <ul class="dropdown-menu">
+                    <li><a href="/Frontend/admin/containerData/containerdata.html">Quản lý Container</a></li>
+                    <li><a href="/Frontend/admin/companiesData/companies.html">Quản lý Công Ty Thuê</a></li>
+                    <li><a href="/Frontend/admin/locationsData/locations.html"class="active">Quản lý Địa điểm</a></li>
+                    <li><a href="/Frontend/admin/transportersData/transporters.html">Quản lý Nhà xe</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</header>
+<h1>Quản lý Địa điểm</h1>
+
+<div id="controls">
+    <input type="text" id="searchInput" placeholder="Tìm kiếm địa điểm..." onkeyup="searchLocation()">
+    <button id="refreshButton" type="button" onclick="refreshData()">Làm mới dữ liệu</button>
+    <button id="showFormButton" type="button" onclick="showForm()">Thêm Địa điểm</button>
+</div>
+
+<form id="locationForm" style="display: none;">
+    <label for="locationId">ID Địa Điểm:</label>
+    <input type="text" id="locationId" name="locationId" required>
+
+    <label for="locationName">Tên Địa Điểm:</label>
+    <input type="text" id="locationName" name="locationName" required>
+
+    <label for="locationImage">URL Ảnh:</label>
+    <input type="text" id="locationImage" name="locationImage" placeholder="https://example.com/image.jpg">
+</form>
+
+<!-- Nút Lưu và Hủy nằm ngoài form -->
+<div id="formButtons" style="display: none; text-align: center; margin-top: 10px;">
+    <button type="button" onclick="addLocation()">Lưu</button>
+    <button type="button" onclick="hideForm()">Hủy</button>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên Địa Điểm</th>
+            <th>Ảnh</th>
+            <th>Hành Động</th>
+        </tr>
+    </thead>
+    <tbody id="locationTableBody">
+        <!-- Dữ liệu sẽ được thêm vào đây -->
+    </tbody>
+</table>
+
+<div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+</body>
+</html>

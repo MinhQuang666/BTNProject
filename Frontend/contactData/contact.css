@@ -1,0 +1,136 @@
+body {
+    background-color: #cbdac2;
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+.container {
+    background-color: white;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+header {
+    background:#1c221c;
+    padding: 0%;
+    text-align: center;
+}
+header h1 {
+    margin: 0;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 10px;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+nav ul li a:hover {
+    text-decoration: none;
+}
+
+/* Main */
+main {
+    padding: 20px;
+}
+
+#intro, #services, #why-us {
+    margin-bottom: 20px;
+}
+
+h2 {
+    color: #4CAF50;
+}
+
+/* Thanh điều hướng */
+.navbar {
+    width: 100%; /* Chiếm toàn bộ chiều rộng của viewport */
+    background: #1c221c;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+    margin: 0; /* Loại bỏ khoảng trống */
+}
+
+.navbar ul {
+    list-style-type: none; /* Loại bỏ dấu chấm đầu dòng */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 20px; /* Khoảng cách giữa các mục */
+}
+
+.navbar ul li {
+    display: inline; /* Hiển thị các mục trên cùng một dòng */
+}
+
+.navbar ul li a {
+    text-decoration: none; /* Loại bỏ gạch chân */
+    color: white(236, 236, 236); /* Màu chữ */
+    font-size: 18px; /* Kích thước chữ */
+    padding: 10px 20px; /* Khoảng cách bên trong */
+    border-radius: 5px; /* Bo tròn góc */
+    transition: background-color 0.3s; /* Hiệu ứng hover */
+}
+
+.navbar ul li a:hover {
+    background-color: #5ae25a; /* Màu nền khi hover */
+}
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+h1 {
+    text-align: center;
+}
+form {
+    display: flex;
+    flex-direction: column;
+}
+label {
+    margin-top: 10px;
+}
+input, textarea, button {
+    margin-top: 5px;
+    padding: 10px;
+    font-size: 16px;
+}
+button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #0056b3;
+}
+.map {
+    margin-top: 20px;
+}
+.navbar ul li a.active {
+    background-color: #4CAF50; /* Màu nền khi đang ở trang hiện tại */
+    color: white; /* Màu chữ */
+    font-weight: bold; /* Chữ đậm */
+    border-radius: 5px; /* Bo tròn góc */
+}
