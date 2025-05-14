@@ -19,7 +19,51 @@ header h1 {
     font-size: 36px;
     margin: 0;
 }
+h2 {
+    font-size: 48px; /* Kích thước chữ lớn hơn */
+    font-weight: bold; /* Chữ đậm */
+    text-align: center; /* Căn giữa */
+    color: #000000; /* Màu chữ mặc định */
+    text-transform: uppercase; /* Chuyển chữ thành in hoa */
+    letter-spacing: 2px; /* Khoảng cách giữa các chữ */
+    margin: 20px 0; /* Khoảng cách trên và dưới */
+    position: relative; /* Để thêm hiệu ứng */
+    transition: color 0.3s ease; /* Hiệu ứng chuyển màu mượt */
+}
 
+/* Thêm gạch chân trang trí */
+h2::after {
+    content: '';
+    display: block;
+    width: 100px; /* Độ dài gạch chân mặc định */
+    height: 4px; /* Độ dày gạch chân */
+    background-color: #060806; /* Màu gạch chân mặc định */
+    margin: 10px auto 0; /* Căn giữa gạch chân */
+    border-radius: 2px; /* Bo góc gạch chân */
+    transition: all 0.3s ease; /* Hiệu ứng mượt cho gạch chân */
+}
+
+/* Hiệu ứng hover cho h1 */
+h2:hover {
+    color: #45a049; /* Đổi màu chữ khi hover */
+}
+
+h2:hover::after {
+    background-color: #45a049; /* Đổi màu gạch chân khi hover */
+    width: 500px; /* Tăng độ dài gạch chân khi hover */
+}
+
+/* Căn giữa văn bản trong input */
+input[type="text"], select {
+    text-align: center; /* Căn giữa văn bản */
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%; /* Đảm bảo input chiếm toàn bộ chiều rộng */
+    max-width: 1000px; /* Giới hạn chiều rộng tối đa */
+    box-sizing: border-box; /* Đảm bảo padding không làm tăng kích thước */
+}
 .navbar {
     background-color: #333;
     padding: 10px 0;
@@ -68,7 +112,7 @@ header h1 {
 }
 
 .container h2 {
-    margin-bottom: 20px;
+    margin-bottom: 50px;
     color: #4CAF50;
 }
 
@@ -91,4 +135,137 @@ header h1 {
 
 .container button:hover {
     background-color: #45a049;
+}
+
+/* Form nhóm */
+.form-group {
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select {
+    width: 80%;
+    margin: 10px 0;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.form-buttons button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.form-buttons button:hover {
+    background-color: #45a049;
+}
+
+/* Bảng nhập Booking */
+#draggableContainer {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+/* Nút Booking mới */
+#newBookingButton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 10px;
+}
+
+#newBookingButton:hover {
+    background-color: #45a049;
+}
+
+/* Bảng danh sách Booking */
+#bookingListContainer {
+    margin-top: 20px; /* Khoảng cách giữa thanh điều hướng và bảng */
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#bookingList {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#bookingList th,
+#bookingList td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+#bookingList th {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+}
+
+#bookingList tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#bookingList tr:hover {
+    background-color: #f1f1f1;
+}
+
+#bookingList td button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#bookingList td button:hover {
+    background-color: #d32f2f;
 }
