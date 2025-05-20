@@ -462,7 +462,7 @@ app.delete('/container-owners/:owner_code', async (req, res) => {
 // ====== API CRUD cho companies ======
 // Lấy danh sách companies (có phân trang)
 app.get('/companies', async (req, res) => {
-    const { page = 1 } = req.query;
+    const page = parseInt(req.query.page, 10) || 1;
     const limit = 20;
     const offset = (page - 1) * limit;
     try {
@@ -473,7 +473,7 @@ app.get('/companies', async (req, res) => {
             companies: result.rows || [],
             totalCompanies,
             totalPages: Math.ceil(totalCompanies / limit),
-            currentPage: parseInt(page, 10),
+            currentPage: page,
         });
     } catch (err) {
         console.error('Error fetching companies:', err);
@@ -543,9 +543,9 @@ app.get('/bookings', async (req, res) => {
     const offset = (page - 1) * limit;
     try {
         const result = await pool.query(`
-            SELECT b.*, c.container_code, b.size, b.type
+            SELECT b.*, c.container_code
             FROM bookings b
-            JOIN containers c ON b.container_code = c.container_code
+            LEFT JOIN containers c ON b.container_code = c.container_code
             ORDER BY b.pickup_date DESC
             LIMIT $1 OFFSET $2
         `, [limit, offset]);
@@ -565,9 +565,15 @@ app.get('/bookings', async (req, res) => {
 
 // Thêm booking mới
 app.post('/bookings', async (req, res) => {
-    let { booking_no, pickup_date, company_id, transporter_id, container_code, seal, quantity, size, pickup_location, dropoff_location, type } = req.body;
-    if (!booking_no || !pickup_date || !company_id || !transporter_id || !container_code || !seal || !quantity || !size) {
+    let { booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type } = req.body;
+    // Trim whitespace from container_code
+    if (container_code) container_code = container_code.trim();
+    if (!booking_no || !pickup_date || !company_name || !transporter_name || !container_code || !seal || !quantity || !size) {
         return res.status(400).send('Thiếu thông tin bắt buộc.');
+    }
+    // Validate container code format after trim
+    if (!isValidContainerCode(container_code)) {
+        return res.status(400).send('Mã số Container không hợp lệ. Phải là 4 chữ cái in hoa + 7 số (VD: ABCD1234567)');
     }
     try {
         // Kiểm tra container đã tồn tại chưa
@@ -594,8 +600,8 @@ app.post('/bookings', async (req, res) => {
         }
         // Thêm booking
         const result = await pool.query(
-            'INSERT INTO bookings (booking_no, pickup_date, company_id, transporter_id, container_code, seal, quantity, size, pickup_location, dropoff_location) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
-            [booking_no, pickup_date, company_id, transporter_id, container_code, seal, quantity, size, pickup_location, dropoff_location]
+            'INSERT INTO bookings (booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+            [booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {

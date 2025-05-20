@@ -53,14 +53,15 @@ CREATE TABLE container_transactions (
 CREATE TABLE bookings (
     booking_no VARCHAR(50) PRIMARY KEY,
     pickup_date DATE NOT NULL,
-    company_id INT REFERENCES companies(id) NOT NULL,
-    transporter_id VARCHAR(50) REFERENCES transporters(id) NOT NULL,
+    company_name VARCHAR(100) NOT NULL,
+    transporter_name VARCHAR(70) NOT NULL,
     container_code VARCHAR(20) NOT NULL,
     seal VARCHAR(50) NOT NULL,
     quantity INT NOT NULL,
     size VARCHAR(10) NOT NULL,
     pickup_location VARCHAR(255),
     dropoff_location VARCHAR(255),
+    type VARCHAR(20),
     CONSTRAINT fk_container_code FOREIGN KEY (container_code) REFERENCES containers(container_code)
 );
 

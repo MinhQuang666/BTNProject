@@ -5,14 +5,18 @@ function isValidContainerCode(containerCode) {
 }
 
 async function addContainer() {
-    const containerCode = document.getElementById('containerId').value;
+    let containerCode = document.getElementById('containerId').value;
+    containerCode = containerCode.trim();
     const containerSize = document.getElementById('containerSize').value;
 
     if (!containerCode || containerCode.length !== 11) {
         alert('Mã số container phải có 11 ký tự.');
         return;
     }
-
+    if (!isValidContainerCode(containerCode)) {
+        alert('Mã số container không hợp lệ. Mã số Container phải là ABCD1234567.');
+        return;
+    }
     try {
         const response = await fetch('http://localhost:3000/containers', {
             method: 'POST',
@@ -53,14 +57,14 @@ async function deleteContainer(containerCode) {
 }
 
 async function updateContainer(containerCode, currentSize) {
-    const newContainerCode = prompt('Nhập mã số container mới:', containerCode);
+    const newContainerCodeRaw = prompt('Nhập mã số container mới:', containerCode);
+    const newContainerCode = newContainerCodeRaw ? newContainerCodeRaw.trim() : '';
     const newSize = prompt('Nhập kích cỡ mới:', currentSize);
 
     if (!isValidContainerCode(newContainerCode)) {
         alert('Mã số container không hợp lệ. Mã số Container phải là ABCD1234567.');
         return;
     }
-
     if (newContainerCode && newSize) {
         try {
             const response = await fetch(`http://localhost:3000/containers/${containerCode}`, {

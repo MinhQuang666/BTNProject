@@ -15,7 +15,7 @@
         <ul>
             <li><a href="/Frontend/employerHome/home.html">Trang chủ</a></li>
             <li><a href="/Frontend/employerHome/Booking/booking.html" class="active">Nhập Booking</a></li>
-            <li><a href="/Frontend/employerHome/Reports/reports.html">Báo cáo</a></li>
+            <li><a href="/Frontend/employerHome/ContainerCharge/ContainerCharge.html">Tính phí Container</a>
         </ul>
     </nav>
     
@@ -29,6 +29,7 @@
         <!-- Bảng danh sách Booking -->
         <div id="bookingListContainer">
             <h2>Danh sách Booking</h2>
+            <button id="refreshBookingBtn" style="margin-bottom:10px; background:#2196F3; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-weight:500; cursor:pointer;">Làm mới dữ liệu</button>
             <table id="bookingList">
                 <caption>
                     <button id="newBookingButton" class="btn btn-primary" onclick="showBookingForm()">+ Booking mới</button>
@@ -84,7 +85,7 @@
                     </div>
                     <div class="form-group">
                         <label for="containerNo">Mã số Container:</label>
-                        <input type="text" id="containerNo" name="containerNo" placeholder="Mã số Container" required>
+                        <input type="text" id="containerNo" name="containerNo" placeholder="Mã số Container" required pattern="^[A-Z]{4}[0-9]{7}$" title="4 chữ cái in hoa + 7 số, ví dụ: ABCD1234567">
                     </div>
                     <div class="form-group">
                         <label for="seal">Seal:</label>
@@ -138,6 +139,25 @@ document.addEventListener('DOMContentLoaded', function() {
         pickupDateInput.value = todayStr;
     }
 });
+
+document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    var containerNo = document.getElementById('containerNo').value.trim();
+    var regex = /^[A-Z]{4}[0-9]{7}$/;
+    if (!regex.test(containerNo)) {
+        showToast('Mã số Container phải gồm 4 chữ cái in hoa + 7 số (VD: ABCD1234567)');
+        document.getElementById('containerNo').focus();
+        e.preventDefault();
+        return false;
+    }
+    // ...existing code for submit...
+});
+
+function showToast(msg) {
+    var toast = document.getElementById('toast');
+    toast.innerText = msg;
+    toast.style.display = 'block';
+    setTimeout(function() { toast.style.display = 'none'; }, 3000);
+}
 </script>
 </body>
 </html>

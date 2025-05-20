@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tính phí Container</title>
+    <link rel="stylesheet" href="../employerHome.css">
+    <script src="ContainerCharge.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Tính phí Container</h1>
+    </header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="/Frontend/employerHome/home.html">Trang chủ</a></li>
+            <li><a href="/Frontend/employerHome/Booking/booking.html">Nhập Booking</a></li>
+            <li><a href="/Frontend/employerHome/ContainerCharge/ContainerCharge.html" class="active">Tính phí Container</a></li>
+        </ul>
+    </nav>
+    <div class="container container-charge" style="max-width:80vw; width:80vw;">
+        <!-- Summary Panel -->
+        <div id="summaryPanel" class="summary-panel">
+            <div class="summary-item">
+                <div class="summary-label">Tổng Booking</div>
+                <div id="totalBookings" class="summary-value summary-blue">0</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Tổng Container</div>
+                <div id="totalContainers" class="summary-value summary-green">0</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Tổng Số lượng</div>
+                <div id="totalQuantity" class="summary-value summary-orange">0</div>
+            </div>
+        </div>
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <label for="filterDate">Ngày lấy:</label>
+            <input type="date" id="filterDate">
+            <button id="filterBtn" type="button">Lọc</button>
+            <button id="clearFilterBtn" type="button">Xóa lọc</button>
+        </div>
+        <div class="booking-list-panel">
+            <h2>Danh sách Booking</h2>
+            <div style="overflow-x:auto;">
+                <table id="bookingList">
+                    <thead>
+                        <tr>
+                            <th>Ngày lấy</th>
+                            <th>Công ty</th>
+                            <th>Nhà xe</th>
+                            <th>BK No</th>
+                            <th>Mã số Container</th>
+                            <th>Seal</th>
+                            <th>Loại hình</th>
+                            <th>Số lượng</th>
+                            <th>Kích cỡ</th>
+                            <th>Nơi lấy Container</th>
+                            <th>Nơi hạ Container</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dữ liệu sẽ được thêm vào đây -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -269,3 +269,94 @@ input[type="text"], select {
 #bookingList td button:hover {
     background-color: #d32f2f;
 }
+
+/* Summary Panel for Container Charge */
+.summary-panel {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 25px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #e0e0e0;
+    padding: 18px 24px;
+    align-items: center;
+    justify-content: flex-start;
+}
+.summary-item {
+    text-align: center;
+    min-width: 120px;
+}
+.summary-label {
+    font-size: 1.1em;
+    color: #555;
+    margin-bottom: 4px;
+}
+.summary-value {
+    font-size: 2em;
+    font-weight: bold;
+}
+.summary-blue { color: #2196F3; }
+.summary-green { color: #4CAF50; }
+.summary-orange { color: #FF9800; }
+
+/* Filter Bar for Container Charge */
+.filter-bar {
+    margin-bottom: 18px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+}
+.filter-bar label {
+    font-weight: 500;
+}
+.filter-bar input[type="date"] {
+    padding: 7px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    min-width: 140px;
+}
+.filter-bar button {
+    padding: 7px 16px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+.filter-bar #filterBtn {
+    background: #2196F3;
+    color: #fff;
+}
+.filter-bar #filterBtn:hover {
+    background: #1976D2;
+}
+.filter-bar #clearFilterBtn {
+    background: #aaa;
+    color: #fff;
+}
+.filter-bar #clearFilterBtn:hover {
+    background: #888;
+}
+
+/* Booking List Panel for Container Charge */
+.booking-list-panel {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #e0e0e0;
+    padding: 18px 10px;
+    margin-bottom: 20px;
+}
+.booking-list-panel h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+/* Table style is already defined for #bookingList, so no need to duplicate */
+
+/* ContainerCharge page width adjustment */
+.container.container-charge {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 30px 30px 10px 30px;
+}

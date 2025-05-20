@@ -137,7 +137,7 @@ function renderPagination(totalPages, currentPage, fetchFunction) {
         const pageButton = document.createElement('button');
         pageButton.textContent = i;
         pageButton.className = i === currentPage ? 'active' : '';
-        pageButton.onclick = () => fetchFunction(i);
+        pageButton.onclick = function() { fetchFunction(Number(this.textContent)); };
         paginationContainer.appendChild(pageButton);
     }
 }
@@ -172,4 +172,7 @@ function searchTransporter() {
 function refreshData() {
     fetchTransporters();
 }
-document.addEventListener('DOMContentLoaded', fetchTransporters);
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetchTransporters(1);
+});
