@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/Frontend/admin/synAdmin.css">
+    <script src="companies.js" defer></script>
+    <title>Quản lý Công ty</title>
+</head>
+<body>
+<header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="/Frontend/admin/AdminHome/adminHome.html">Trang chủ</a></li>
+            <li><a href="/Frontend/admin/Dashboard/adminDashboard.html">Dashboard</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle active">Quản lý công ty</a>
+                <ul class="dropdown-menu">
+                    <li><a href="/Frontend/admin/containerData/containerdata.html">Quản lý Container</a></li>
+                    <li><a href="/Frontend/admin/companiesData/companies.html" class="active">Quản lý Công Ty Thuê</a></li>
+                    <li><a href="/Frontend/admin/locationsData/locations.html">Quản lý Địa điểm</a></li>
+                    <li><a href="/Frontend/admin/transportersData/transporters.html">Quản lý Nhà xe</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</header>
+<h1>Quản lý Công ty</h1>
+
+<div id="controls">
+    <button id="refreshButton" type="button" class="btn" onclick="refreshData()">Làm mới dữ liệu</button>
+    <input type="text" id="searchInput" placeholder="Tìm kiếm tên công ty..." onkeyup="searchCompany()" autocomplete="off">
+    <button id="showFormButton" type="button" class="btn btn-primary" onclick="showForm()">Thêm Công ty</button>
+</div>
+
+<form id="companyForm" style="display: none;" autocomplete="off" onsubmit="event.preventDefault(); addCompany();">
+    <label for="companyName">Tên Công ty:</label>
+    <input type="text" id="companyName" name="companyName" required>
+    <div id="formButtons" style="text-align: center; margin-top: 10px;">
+        <button type="submit" class="btn btn-success">Lưu</button>
+        <button type="button" class="btn btn-cancel" onclick="hideForm()">Hủy</button>
+    </div>
+</form>
+
+<div id="toast" style="display:none; position:fixed; top:20px; right:20px; z-index:9999; min-width:200px; padding:10px; background:#333; color:#fff; border-radius:5px; text-align:center;"></div>
+<div id="spinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9998;">
+    <div class="loader"></div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên Công ty</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="companyTableBody">
+        <!-- Data will be added here -->
+    </tbody>
+</table>
+
+<div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+</body>
+</html>

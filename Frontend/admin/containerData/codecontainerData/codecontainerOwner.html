@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/Frontend/admin/synAdmin.css">
+    <script src="codecontainerOwner.js" defer></script>
+    <title>Quản lý Mã Công Ty Sở Hữu</title>
+</head>
+<body>
+<header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="/Frontend/admin/AdminHome/adminHome.html">Trang chủ</a></li>
+            <li><a href="/Frontend/admin/Dashboard/adminDashboard.html">Dashboard</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle active">Quản lý Mã Công Ty Sở Hữu</a>
+                <ul class="dropdown-menu">
+                    <li><a href="/Frontend/admin/containerData/containerdata.html" class="active">Quản lý Container</a></li>
+                    <li><a href="/Frontend/admin/companiesData/companies.html">Quản lý Công Ty Thuê</a></li>
+                    <li><a href="/Frontend/admin/locationsData/locations.html">Quản lý Địa điểm</a></li>
+                    <li><a href="/Frontend/admin/transportersData/transporters.html">Quản lý Nhà xe</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</header>
+<h1>Quản lý Mã Công Ty Sở Hữu</h1>
+
+<div id="controls">
+    <button id="refreshButton" type="button" onclick="refreshData()">Làm mới dữ liệu</button>
+    <input type="text" id="searchInput" placeholder="Tìm kiếm mã công ty..." onkeyup="searchOwner()">
+    <button id="showFormButton" type="button" onclick="showForm()">Thêm Mã Công Ty</button>
+    <button id="ownerPageButton" type="button" onclick="window.location.href='/Frontend/admin/containerData/containerdata.html'" style="background-color: red; color: white;">Quay lại</button>
+</div>
+
+<form id="ownerForm" style="display: none;">
+    <label for="ownerCode">Mã Công Ty (3 ký tự):</label>
+    <input type="text" id="ownerCode" name="ownerCode" maxlength="3" required placeholder="VD: TCK">
+
+    <label for="ownerName">Tên Công Ty:</label>
+    <input type="text" id="ownerName" name="ownerName" required placeholder="VD: Công Ty TCK">
+</form>
+
+<!-- Nút Lưu và Hủy nằm ngoài form -->
+<div id="formButtons" style="display: none; text-align: center;">
+    <button type="button" onclick="addOwner()">Lưu</button>
+    <button type="button" onclick="hideForm()">Hủy</button>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Mã Công Ty</th>
+            <th>Tên Công Ty</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="ownerTableBody">
+        <!-- Data will be added here -->
+    </tbody>
+</table>
+
+<div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+</body>
+</html>

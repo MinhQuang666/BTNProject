@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Booking</title>
+    <link rel="stylesheet" href="../employerHome.css">
+    <script src="booking.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Quản lý Booking</h1>
+    </header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="/Frontend/employerHome/home.html">Trang chủ</a></li>
+            <li><a href="/Frontend/employerHome/Booking/booking.html" class="active">Nhập Booking</a></li>
+            <li><a href="/Frontend/employerHome/Reports/reports.html">Báo cáo</a></li>
+        </ul>
+    </nav>
+    
+    <!-- Toast notification -->
+    <div id="toast" style="display:none; position:fixed; top:20px; right:20px; z-index:9999; min-width:200px; padding:10px; background:#333; color:#fff; border-radius:5px; text-align:center;"></div>
+    <!-- Loading spinner -->
+    <div id="spinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9998;">
+        <div class="loader"></div>
+    </div>
+    
+        <!-- Bảng danh sách Booking -->
+        <div id="bookingListContainer">
+            <h2>Danh sách Booking</h2>
+            <table id="bookingList">
+                <caption>
+                    <button id="newBookingButton" class="btn btn-primary" onclick="showBookingForm()">+ Booking mới</button>
+                </caption>
+                <thead>
+                    <tr>
+                        <th>Ngày lấy</th>
+                        <th>Công ty</th>
+                        <th>Nhà xe</th>
+                        <th>BK No</th>
+                        <th>Mã số Container</th>
+                        <th>Seal</th>
+                        <th>Loại hình</th>
+                        <th>Số lượng</th>
+                        <th>Kích cỡ</th>
+                        <th>Nơi lấy Container</th>
+                        <th>Nơi hạ Container</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dữ liệu sẽ được thêm vào đây -->
+                </tbody>
+            </table>
+        </div>
+        <main id="main-container"></main>
+        <!-- Bảng nhập Booking -->
+        <div id="draggableContainer" class="container" style="display: none;">
+            <h1>Nhập Thông Tin Booking</h1>
+            <form id="bookingForm" autocomplete="off">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="pickupDate">Ngày lấy:</label>
+                        <input type="date" id="pickupDate" name="pickupDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="company">Công ty:</label>
+                        <select id="company" name="company" required>
+                            <option value="">-- Chọn công ty --</option>
+                            <!-- Options sẽ được thêm bằng JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transporter">Nhà xe:</label>
+                        <select id="transporter" name="transporter" required>
+                            <option value="">-- Chọn nhà xe --</option>
+                            <!-- Options sẽ được thêm bằng JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingNo">BK No:</label>
+                        <input type="text" id="bookingNo" name="bookingNo" placeholder="Số Booking" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="containerNo">Mã số Container:</label>
+                        <input type="text" id="containerNo" name="containerNo" placeholder="Mã số Container" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="seal">Seal:</label>
+                        <input type="text" id="seal" name="seal" placeholder="Seal" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Số lượng:</label>
+                        <input type="number" id="quantity" name="quantity" placeholder="Số lượng" required value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="size">Kích cỡ:</label>
+                        <select id="size" name="size" required>
+                            <option value="20">20'</option>
+                            <option value="40" selected>40'</option>
+                            <option value="45">45'</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pickupLocation">Nơi lấy Container:</label>
+                        <input type="text" id="pickupLocation" name="pickupLocation" placeholder="Địa điểm lấy Container" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dropoffLocation">Nơi hạ Container:</label>
+                        <input type="text" id="dropoffLocation" name="dropoffLocation" placeholder="Địa điểm hạ Container" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Loại hình:</label>
+                        <select id="type" name="type" required>
+                            <option value="import">Nhập khẩu</option>
+                            <option value="export" selected>Xuất khẩu</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-success">Lưu</button>
+                    <button type="button" class="btn btn-cancel" onclick="hideBookingForm()" style="background-color: red; color: white;">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set pickupDate to today by default
+    var today = new Date();
+    var yyyy = today.getFullYear();
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var dd = String(today.getDate()).padStart(2, '0');
+    var todayStr = yyyy + '-' + mm + '-' + dd;
+    var pickupDateInput = document.getElementById('pickupDate');
+    if (pickupDateInput) {
+        pickupDateInput.value = todayStr;
+    }
+});
+</script>
+</body>
+</html>

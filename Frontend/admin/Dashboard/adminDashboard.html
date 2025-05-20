@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/Frontend/admin/synAdmin.css">
+    <script src="adminDashboard.js" defer></script>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <ul>
+                <li><a href="/Frontend/admin/AdminHome/adminHome.html">Xem trang chủ</a></li>
+                <li><a href="/Frontend/admin/Dashboard/adminDashboard.html"class="active">Dashboard</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">Quản lý</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/Frontend/admin/containerData/containerdata.html">Quản lý Container</a></li>
+                        <li><a href="/Frontend/admin/companiesData/companies.html">Quản lý Công Ty Thuê</a></li>
+                        <li><a href="/Frontend/admin/locationsData/locations.html">Quản lý Địa điểm</a></li>
+                        <li><a href="/Frontend/admin/transportersData/transporters.html">Quản lý Nhà xe</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="overview">
+            <div class="card">
+                <h3>Tổng số Container</h3>
+                <p id="totalContainers">0</p>
+            </div>
+            <div class="card">
+                <h3>Tổng số Khách hàng</h3>
+                <p id="totalCustomers">0</p>
+            </div>
+            <div class="card">
+                <h3>Liên hệ mới</h3>
+                <p id="newContacts">0</p>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Admin Dashboard. All rights reserved.</p>
+    </footer>
+</body>
+</html>
