@@ -1,41 +1,61 @@
-document.getElementById('bookingForm').addEventListener('submit', function (e) {
+document.getElementById('bookingForm').addEventListener('submit', async function (e) {
     e.preventDefault(); // Ngăn chặn reload trang
 
+    // Lấy dữ liệu từ form, dùng đúng tên trường backend yêu cầu
     const bookingData = {
-        pickupDate: document.getElementById('pickupDate').value,
-        company: document.getElementById('company').value,
-        transporter: document.getElementById('transporter').value,
-        bookingNo: document.getElementById('bookingNo').value,
-        containerNo: document.getElementById('containerNo').value,
+        pickup_date: document.getElementById('pickupDate').value,
+        company_id: document.getElementById('company').value,
+        transporter_id: document.getElementById('transporter').value,
+        booking_no: document.getElementById('bookingNo').value,
+        container_no: document.getElementById('containerNo').value, // Đúng tên trường backend
         seal: document.getElementById('seal').value,
         type: document.getElementById('type').value,
         quantity: document.getElementById('quantity').value,
         size: document.getElementById('size').value,
-        pickupLocation: document.getElementById('pickupLocation').value,
-        dropoffLocation: document.getElementById('dropoffLocation').value,
+        pickup_location: document.getElementById('pickupLocation').value,
+        dropoff_location: document.getElementById('dropoffLocation').value,
     };
 
-    addBookingToList(bookingData); // Thêm dữ liệu vào bảng danh sách
-    hideBookingForm(); // Ẩn bảng nhập liệu
-    document.getElementById('bookingForm').reset(); // Reset form
+    // Gọi API backend để lưu booking
+    try {
+        showSpinner();
+        const response = await fetch('http://localhost:3000/bookings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookingData)
+        });
+        hideSpinner();
+        if (response.ok) {
+            showToast('Lưu booking thành công!', 'success');
+            addBookingToList(bookingData); // Thêm vào bảng giao diện
+            hideBookingForm();
+            document.getElementById('bookingForm').reset();
+        } else {
+            const errorText = await response.text();
+            showToast('Lỗi: ' + errorText, 'error');
+        }
+    } catch (err) {
+        hideSpinner();
+        showToast('Lỗi kết nối server!', 'error');
+        console.error('Lỗi khi lưu booking:', err);
+    }
 });
 
 function addBookingToList(bookingData) {
     const tableBody = document.querySelector('#bookingList tbody');
     const newRow = document.createElement('tr');
-
     newRow.innerHTML = `
-        <td>${bookingData.pickupDate}</td>
-        <td>${bookingData.company}</td>
-        <td>${bookingData.transporter}</td>
-        <td>${bookingData.bookingNo}</td>
-        <td>${bookingData.containerNo}</td>
-        <td>${bookingData.seal}</td>
-        <td>${bookingData.type}</td>
-        <td>${bookingData.quantity}</td>
-        <td>${bookingData.size}</td>
-        <td>${bookingData.pickupLocation}</td>
-        <td>${bookingData.dropoffLocation}</td>
+        <td>${formatDate(bookingData.pickup_date) || ''}</td>
+        <td>${bookingData.company_id || ''}</td>
+        <td>${bookingData.transporter_id || ''}</td>
+        <td>${bookingData.booking_no || ''}</td>
+        <td>${bookingData.container_no || ''}</td>
+        <td>${bookingData.seal || ''}</td>
+        <td>${bookingData.type || ''}</td>
+        <td>${bookingData.quantity || ''}</td>
+        <td>${bookingData.size || ''}</td>
+        <td>${bookingData.pickup_location || ''}</td>
+        <td>${bookingData.dropoff_location || ''}</td>
         <td>
             <button onclick="deleteBooking(this)">Xóa</button>
         </td>
@@ -100,7 +120,6 @@ document.addEventListener('mousemove', (e) => {
 document.addEventListener('mouseup', () => {
     isDragging = false;
     draggableContainer.style.cursor = 'move'; // Trả lại con trỏ chuột
-<<<<<<< HEAD
 });
 
 // Tự động load danh sách công ty vào select khi trang booking load
@@ -143,9 +162,64 @@ async function loadTransportersToSelect() {
     }
 }
 
+// Hàm fetchBookings: lấy danh sách booking từ backend và render ra bảng
+async function fetchBookings() {
+    try {
+        const response = await fetch('http://localhost:3000/bookings?page=1');
+        if (!response.ok) throw new Error('Không thể lấy danh sách booking');
+        const data = await response.json();
+        const bookings = data.bookings || [];
+        const tableBody = document.querySelector('#bookingList tbody');
+        tableBody.innerHTML = '';
+        bookings.forEach(booking => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${formatDate(booking.pickup_date) || ''}</td>
+                <td>${booking.company_id || ''}</td>
+                <td>${booking.transporter_id || ''}</td>
+                <td>${booking.booking_no || ''}</td>
+                <td>${booking.container_no || ''}</td>
+                <td>${booking.seal || ''}</td>
+                <td>${booking.type || ''}</td>
+                <td>${booking.quantity || ''}</td>
+                <td>${booking.size || ''}</td>
+                <td>${booking.pickup_location || ''}</td>
+                <td>${booking.dropoff_location || ''}</td>
+                <td><button onclick="deleteBooking(this)">Xóa</button></td>
+            `;
+            tableBody.appendChild(newRow);
+        });
+    } catch (err) {
+        console.error('Lỗi khi load danh sách booking:', err);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadCompaniesToSelect();
     loadTransportersToSelect();
-=======
->>>>>>> a5600f063d4a65bcf194a8c01345c4274462a3d9
+    fetchBookings();
 });
+
+// Toast và spinner
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.background = type === 'success' ? '#28a745' : '#dc3545';
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+}
+function showSpinner() {
+    document.getElementById('spinner').style.display = 'block';
+}
+function hideSpinner() {
+    document.getElementById('spinner').style.display = 'none';
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}

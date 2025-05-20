@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 DROP TABLE IF EXISTS bookings;
 DROP TABLE IF EXISTS container_transactions;
 DROP TABLE IF EXISTS containers;
@@ -7,49 +7,29 @@ DROP TABLE IF EXISTS locations;
 DROP TABLE IF EXISTS transporters;
 DROP TABLE IF EXISTS companies;
 
-=======
-DROP TABLE companies;
-DROP TABLE transporters;
-DROP TABLE locations;
-DROP TABLE containers;
-DROP TABLE container_transactions;
-DROP TABLE container_owners;
-SELECT * FROM containers
-SELECT * FROM transporters;
-SELECT * FROM locations;
-SELECT * FROM container_owners;
->>>>>>> a5600f063d4a65bcf194a8c01345c4274462a3d9
+
 CREATE TABLE companies (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
+    name VARCHAR(100) 
 );
 
 CREATE TABLE transporters (
     id VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(70) NOT NULL
+    name VARCHAR(70)
 );
 
 CREATE TABLE locations (
     id VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
     image_url VARCHAR(255)
 );
 
 CREATE TABLE container_owners (
-<<<<<<< HEAD
     owner_code CHAR(3) PRIMARY KEY CHECK (owner_code ~ '^[A-Z]{3}$'),
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255)
 );
 
-CREATE TABLE containers (
-    id SERIAL PRIMARY KEY,
-    container_code VARCHAR(20) NOT NULL CHECK (container_code ~ '^[A-Z]{4}[0-9]{7}$'),
-    size VARCHAR(10) NOT NULL,
-    owner_code CHAR(3) REFERENCES container_owners(owner_code)
-=======
-    owner_code CHAR(3) PRIMARY KEY CHECK (owner_code ~ '^[A-Z]{3}$'), -- Mã 3 chữ cái làm khóa chính
-    name VARCHAR(255) NOT NULL -- Tên chủ sở hữu
-);
+
 
 
 CREATE TABLE containers (
@@ -57,14 +37,14 @@ CREATE TABLE containers (
     container_code VARCHAR(20) NOT NULL CHECK (container_code ~ '^[A-Z]{4}[0-9]{7}$'), -- Mã container
     size VARCHAR(10) NOT NULL, -- Kích cỡ container
     owner_code CHAR(3) REFERENCES container_owners(owner_code) -- Liên kết với bảng container_owners qua owner_code
->>>>>>> a5600f063d4a65bcf194a8c01345c4274462a3d9
+
 );
 
 CREATE TABLE container_transactions (
     id SERIAL PRIMARY KEY,
     container_id INT REFERENCES containers(id),
     company_id INT REFERENCES companies(id),
-<<<<<<< HEAD
+
     transporter_id VARCHAR(50) REFERENCES transporters(id),
     pickup_location_id VARCHAR(50) REFERENCES locations(id),
     dropoff_location_id VARCHAR(50) REFERENCES locations(id),
@@ -92,10 +72,9 @@ SELECT * FROM container_owners;
 SELECT * FROM containers;
 SELECT * FROM container_transactions;
 SELECT * FROM bookings;
-=======
     transporter_id INT REFERENCES transporters(id),
     pickup_location_id INT REFERENCES locations(id),
     dropoff_location_id INT REFERENCES locations(id),
     transaction_date DATE NOT NULL
 );
->>>>>>> a5600f063d4a65bcf194a8c01345c4274462a3d9
+
