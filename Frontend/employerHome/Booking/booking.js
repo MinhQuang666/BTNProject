@@ -100,6 +100,7 @@ document.addEventListener('mousemove', (e) => {
 document.addEventListener('mouseup', () => {
     isDragging = false;
     draggableContainer.style.cursor = 'move'; // Trả lại con trỏ chuột
+<<<<<<< HEAD
 });
 
 // Tự động load danh sách công ty vào select khi trang booking load
@@ -145,4 +146,6 @@ async function loadTransportersToSelect() {
 document.addEventListener('DOMContentLoaded', function() {
     loadCompaniesToSelect();
     loadTransportersToSelect();
+=======
+>>>>>>> a5600f063d4a65bcf194a8c01345c4274462a3d9
 });
