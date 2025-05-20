@@ -1,4 +1,3 @@
-
 DROP TABLE IF EXISTS bookings;
 DROP TABLE IF EXISTS container_transactions;
 DROP TABLE IF EXISTS containers;
@@ -34,7 +33,7 @@ CREATE TABLE container_owners (
 
 CREATE TABLE containers (
     id SERIAL PRIMARY KEY, -- ID tự động tăng
-    container_code VARCHAR(20) NOT NULL CHECK (container_code ~ '^[A-Z]{4}[0-9]{7}$'), -- Mã container
+    container_code VARCHAR(20) NOT NULL UNIQUE CHECK (container_code ~ '^[A-Z]{4}[0-9]{7}$'), -- Mã container, đảm bảo duy nhất
     size VARCHAR(10) NOT NULL, -- Kích cỡ container
     owner_code CHAR(3) REFERENCES container_owners(owner_code) -- Liên kết với bảng container_owners qua owner_code
 
@@ -56,12 +55,13 @@ CREATE TABLE bookings (
     pickup_date DATE NOT NULL,
     company_id INT REFERENCES companies(id) NOT NULL,
     transporter_id VARCHAR(50) REFERENCES transporters(id) NOT NULL,
-    container_id INT REFERENCES containers(id) NOT NULL,
+    container_code VARCHAR(20) NOT NULL,
     seal VARCHAR(50) NOT NULL,
     quantity INT NOT NULL,
     size VARCHAR(10) NOT NULL,
     pickup_location VARCHAR(255),
-    dropoff_location VARCHAR(255)
+    dropoff_location VARCHAR(255),
+    CONSTRAINT fk_container_code FOREIGN KEY (container_code) REFERENCES containers(container_code)
 );
 
 -- Xem dữ liệu mẫu
@@ -72,9 +72,4 @@ SELECT * FROM container_owners;
 SELECT * FROM containers;
 SELECT * FROM container_transactions;
 SELECT * FROM bookings;
-    transporter_id INT REFERENCES transporters(id),
-    pickup_location_id INT REFERENCES locations(id),
-    dropoff_location_id INT REFERENCES locations(id),
-    transaction_date DATE NOT NULL
-);
 

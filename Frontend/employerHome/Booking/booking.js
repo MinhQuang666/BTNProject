@@ -7,7 +7,7 @@ document.getElementById('bookingForm').addEventListener('submit', async function
         company_id: document.getElementById('company').value,
         transporter_id: document.getElementById('transporter').value,
         booking_no: document.getElementById('bookingNo').value,
-        container_no: document.getElementById('containerNo').value, // Đúng tên trường backend
+        container_code: document.getElementById('containerNo').value, // Đúng tên trường backend
         seal: document.getElementById('seal').value,
         type: document.getElementById('type').value,
         quantity: document.getElementById('quantity').value,
@@ -49,7 +49,7 @@ function addBookingToList(bookingData) {
         <td>${bookingData.company_id || ''}</td>
         <td>${bookingData.transporter_id || ''}</td>
         <td>${bookingData.booking_no || ''}</td>
-        <td>${bookingData.container_no || ''}</td>
+        <td>${bookingData.container_code || ''}</td>
         <td>${bookingData.seal || ''}</td>
         <td>${bookingData.type || ''}</td>
         <td>${bookingData.quantity || ''}</td>
@@ -178,7 +178,7 @@ async function fetchBookings() {
                 <td>${booking.company_id || ''}</td>
                 <td>${booking.transporter_id || ''}</td>
                 <td>${booking.booking_no || ''}</td>
-                <td>${booking.container_no || ''}</td>
+                <td>${booking.container_code || ''}</td>
                 <td>${booking.seal || ''}</td>
                 <td>${booking.type || ''}</td>
                 <td>${booking.quantity || ''}</td>

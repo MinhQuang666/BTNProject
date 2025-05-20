@@ -545,7 +545,7 @@ app.get('/bookings', async (req, res) => {
         const result = await pool.query(`
             SELECT b.*, c.container_code, b.size, b.type
             FROM bookings b
-            JOIN containers c ON b.container_id = c.id
+            JOIN containers c ON b.container_code = c.container_code
             ORDER BY b.pickup_date DESC
             LIMIT $1 OFFSET $2
         `, [limit, offset]);
@@ -565,31 +565,28 @@ app.get('/bookings', async (req, res) => {
 
 // Thêm booking mới
 app.post('/bookings', async (req, res) => {
-    let { booking_no, pickup_date, company_id, transporter_id, container_no, seal, quantity, size, pickup_location, dropoff_location, type } = req.body;
-    if (!booking_no || !pickup_date || !company_id || !transporter_id || !container_no || !seal || !quantity || !size) {
+    let { booking_no, pickup_date, company_id, transporter_id, container_code, seal, quantity, size, pickup_location, dropoff_location, type } = req.body;
+    if (!booking_no || !pickup_date || !company_id || !transporter_id || !container_code || !seal || !quantity || !size) {
         return res.status(400).send('Thiếu thông tin bắt buộc.');
     }
     try {
         // Kiểm tra container đã tồn tại chưa
-        let containerResult = await pool.query('SELECT * FROM containers WHERE container_code = $1', [container_no]);
-        let container_id;
+        let containerResult = await pool.query('SELECT * FROM containers WHERE container_code = $1', [container_code]);
         if (containerResult.rows.length === 0) {
             // Nếu chưa có, kiểm tra owner_code
-            const owner_code = container_no.substring(0, 3).toUpperCase();
+            const owner_code = container_code.substring(0, 3).toUpperCase();
             let ownerResult = await pool.query('SELECT * FROM container_owners WHERE owner_code = $1', [owner_code]);
             if (ownerResult.rows.length === 0) {
                 // Nếu chưa có owner_code thì thêm mới với tên là NULL
                 await pool.query('INSERT INTO container_owners (owner_code, name) VALUES ($1, NULL)', [owner_code]);
             }
             // Thêm container mới
-            const insertContainer = await pool.query(
-                'INSERT INTO containers (container_code, size, owner_code) VALUES ($1, $2, $3) RETURNING id',
-                [container_no, size, owner_code]
+            await pool.query(
+                'INSERT INTO containers (container_code, size, owner_code) VALUES ($1, $2, $3)',
+                [container_code, size, owner_code]
             );
-            container_id = insertContainer.rows[0].id;
-        } else {
-            container_id = containerResult.rows[0].id;
         }
+
         // Kiểm tra booking_no đã tồn tại chưa
         const existing = await pool.query('SELECT * FROM bookings WHERE booking_no = $1', [booking_no]);
         if (existing.rows.length > 0) {
@@ -597,8 +594,8 @@ app.post('/bookings', async (req, res) => {
         }
         // Thêm booking
         const result = await pool.query(
-            'INSERT INTO bookings (booking_no, pickup_date, company_id, transporter_id, container_id, seal, quantity, size, pickup_location, dropoff_location) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
-            [booking_no, pickup_date, company_id, transporter_id, container_id, seal, quantity, size, pickup_location, dropoff_location]
+            'INSERT INTO bookings (booking_no, pickup_date, company_id, transporter_id, container_code, seal, quantity, size, pickup_location, dropoff_location) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
+            [booking_no, pickup_date, company_id, transporter_id, container_code, seal, quantity, size, pickup_location, dropoff_location]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -610,11 +607,11 @@ app.post('/bookings', async (req, res) => {
 // Sửa booking
 app.put('/bookings/:booking_no', async (req, res) => {
     const { booking_no } = req.params;
-    const { pickup_date, company_id, transporter_id, container_id, seal, quantity, size, pickup_location, dropoff_location } = req.body;
+    const { pickup_date, company_id, transporter_id, container_code, seal, quantity, size, pickup_location, dropoff_location } = req.body;
     try {
         const result = await pool.query(
-            'UPDATE bookings SET pickup_date=$1, company_id=$2, transporter_id=$3, container_id=$4, seal=$5, quantity=$6, size=$7, pickup_location=$8, dropoff_location=$9 WHERE booking_no=$10 RETURNING *',
-            [pickup_date, company_id, transporter_id, container_id, seal, quantity, size, pickup_location, dropoff_location, booking_no]
+            'UPDATE bookings SET pickup_date=$1, company_id=$2, transporter_id=$3, container_code=$4, seal=$5, quantity=$6, size=$7, pickup_location=$8, dropoff_location=$9 WHERE booking_no=$10 RETURNING *',
+            [pickup_date, company_id, transporter_id, container_code, seal, quantity, size, pickup_location, dropoff_location, booking_no]
         );
         if (result.rowCount === 0) {
             return res.status(404).send('Không tìm thấy booking.');
