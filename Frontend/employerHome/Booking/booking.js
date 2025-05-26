@@ -19,6 +19,7 @@ document.getElementById('bookingForm').addEventListener('submit', async function
         size: document.getElementById('size').value,
         pickup_location: document.getElementById('pickupLocation').value,
         dropoff_location: document.getElementById('dropoffLocation').value,
+        extra_fee: document.getElementById('extraFee').value || 0
     };
 
     // Validate container code format after trim
@@ -50,9 +51,12 @@ document.getElementById('bookingForm').addEventListener('submit', async function
             document.getElementById('pickupDate').value = pickupDateValue;
             document.getElementById('company').value = companyValue;
             document.getElementById('transporter').value = transporterValue;
+            // Sau khi thêm, sửa, xóa booking thành công, gọi:
+            localStorage.setItem('bookingListUpdated', Date.now().toString());
         } else {
             const errorText = await response.text();
             showToast('Lỗi: ' + errorText, 'error');
+            // Không reset form nếu lỗi
         }
     } catch (err) {
         hideSpinner();
@@ -76,9 +80,8 @@ function addBookingToList(bookingData) {
         <td>${bookingData.size || ''}</td>
         <td>${bookingData.pickup_location || ''}</td>
         <td>${bookingData.dropoff_location || ''}</td>
-        <td>
-            <button onclick="deleteBooking(this)">Xóa</button>
-        </td>
+        <td>${bookingData.extra_fee || ''}</td>
+        <td><button onclick="deleteBooking(this)">Xóa</button></td>
     `;
 
     tableBody.appendChild(newRow);
@@ -87,7 +90,26 @@ function addBookingToList(bookingData) {
 function deleteBooking(button) {
     if (!confirm('Bạn có chắc chắn muốn xóa booking này không?')) return;
     const row = button.parentElement.parentElement;
-    row.remove(); // Xóa hàng khỏi bảng
+    // Lấy booking_no từ cột tương ứng
+    const bookingNo = row.children[3].textContent;
+    // Gọi API backend để xóa booking
+    fetch(`http://localhost:3000/bookings/${encodeURIComponent(bookingNo)}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok) {
+            showToast('Đã xóa booking!', 'success');
+            fetchBookings(); // Làm mới lại danh sách từ backend
+            // Sau khi thêm, sửa, xóa booking thành công, gọi:
+            localStorage.setItem('bookingListUpdated', Date.now().toString());
+        } else {
+            response.text().then(text => showToast('Lỗi: ' + text, 'error'));
+        }
+    })
+    .catch(err => {
+        showToast('Lỗi kết nối server!', 'error');
+        console.error('Lỗi khi xóa booking:', err);
+    });
 }
 
 function showBookingForm() {
@@ -183,6 +205,43 @@ async function loadTransportersToSelect() {
     }
 }
 
+// Lấy danh sách công ty và nhà xe cho filter select
+async function loadFilterCompanies() {
+    try {
+        const response = await fetch('http://localhost:3000/companies?page=1');
+        if (!response.ok) return;
+        const data = await response.json();
+        const companies = data.companies || [];
+        const select = document.getElementById('filter-company_name');
+        select.innerHTML = '<option value="">--Tất cả--</option>';
+        companies.forEach(company => {
+            const option = document.createElement('option');
+            option.value = company.name;
+            option.textContent = company.name;
+            select.appendChild(option);
+        });
+    } catch (err) {}
+}
+async function loadFilterTransporters() {
+    try {
+        const response = await fetch('http://localhost:3000/transporters?page=1');
+        if (!response.ok) return;
+        const data = await response.json();
+        const transporters = data.transporters || [];
+        const select = document.getElementById('filter-transporter_name');
+        select.innerHTML = '<option value="">--Tất cả--</option>';
+        transporters.forEach(transporter => {
+            const option = document.createElement('option');
+            option.value = transporter.name;
+            option.textContent = transporter.name;
+            select.appendChild(option);
+        });
+    } catch (err) {}
+}
+
+// --- Company select search/lazy load ---
+// XÓA: enableCompanySelectSearch, enableFilterCompanySelectSearch, searchCompanies, updateCompanySelectOptions, debounce và mọi đoạn code liên quan input .company-search-input
+
 // Hàm fetchBookings: lấy danh sách booking từ backend và render ra bảng
 async function fetchBookings() {
     console.log('fetchBookings called');
@@ -208,6 +267,7 @@ async function fetchBookings() {
                 <td>${booking.size || ''}</td>
                 <td>${booking.pickup_location || ''}</td>
                 <td>${booking.dropoff_location || ''}</td>
+                <td>${booking.extra_fee || ''}</td>
                 <td><button onclick="deleteBooking(this)">Xóa</button></td>
             `;
             tableBody.appendChild(newRow);
@@ -276,6 +336,44 @@ function renderBookingPagination() {
     }
 }
 
+// Lọc dữ liệu bảng booking theo từng cột
+const filterInputs = [
+    'pickup_date', 'company_name', 'transporter_name', 'booking_no', 'container_code', 'seal', 'type', 'quantity', 'size', 'pickup_location', 'dropoff_location', 'extra_fee'
+];
+filterInputs.forEach(field => {
+    const input = document.getElementById('filter-' + field);
+    if (input) {
+        input.addEventListener('input', filterBookingTable);
+    }
+});
+
+function filterBookingTable() {
+    const table = document.getElementById('bookingList');
+    const tbody = table.querySelector('tbody');
+    const rows = tbody.getElementsByTagName('tr');
+    const filters = {};
+    filterInputs.forEach(field => {
+        const val = document.getElementById('filter-' + field).value.trim().toLowerCase();
+        filters[field] = val;
+    });
+    for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        let show = true;
+        // Map thứ tự cột với filterInputs
+        for (let j = 0; j < filterInputs.length; j++) {
+            const filterVal = filters[filterInputs[j]];
+            if (filterVal) {
+                const cellText = (cells[j]?.textContent || '').toLowerCase();
+                if (!cellText.includes(filterVal)) {
+                    show = false;
+                    break;
+                }
+            }
+        }
+        rows[i].style.display = show ? '' : 'none';
+    }
+}
+
 // Toast và spinner
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
@@ -314,11 +412,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load company and transporter select options
     loadCompaniesToSelect();
     loadTransportersToSelect();
+    loadFilterCompanies();
+    loadFilterTransporters();
+    // Tải danh sách booking ngay khi vào trang
+    fetchBookings();
     // Nút làm mới dữ liệu
     var refreshBtn = document.getElementById('refreshBookingBtn');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', function() {
             fetchBookings();
         });
+    }
+});
+
+// Lắng nghe sự kiện cập nhật booking từ trang booking.html hoặc ContainerCharge.html
+window.addEventListener('storage', function(event) {
+    if (event.key === 'bookingListUpdated') {
+        if (typeof fetchBookings === 'function') fetchBookings();
     }
 });

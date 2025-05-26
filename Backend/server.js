@@ -111,11 +111,14 @@ app.delete('/containers/:container_code', async (req, res) => {
 // API để sửa container
 app.put('/containers/:container_code', async (req, res) => {
     const { container_code } = req.params; // Mã số container cũ
-    const { new_container_code, size } = req.body; // Mã số container mới và kích cỡ mới
+    const { new_container_code, size, owner_code } = req.body; // Thêm owner_code
 
     // Kiểm tra định dạng mã số container mới
     if (!isValidContainerCode(new_container_code)) {
         return res.status(400).send('Mã số container không hợp lệ. Định dạng phải là 4 chữ cái in hoa và 7 số.');
+    }
+    if (!owner_code || owner_code.length !== 3) {
+        return res.status(400).send('Mã công ty sở hữu phải có đúng 3 ký tự.');
     }
 
     try {
@@ -125,22 +128,23 @@ app.put('/containers/:container_code', async (req, res) => {
                 'SELECT * FROM containers WHERE container_code = $1',
                 [new_container_code]
             );
-
             if (checkResult.rows.length > 0) {
                 return res.status(400).send('Mã số container mới đã tồn tại.');
             }
         }
-
-        // Cập nhật mã số container và kích cỡ
+        // Kiểm tra owner_code có tồn tại không
+        const ownerResult = await pool.query('SELECT * FROM container_owners WHERE owner_code = $1', [owner_code]);
+        if (ownerResult.rows.length === 0) {
+            return res.status(400).send('Mã công ty sở hữu không tồn tại.');
+        }
+        // Cập nhật mã số container, kích cỡ và owner_code
         const result = await pool.query(
-            'UPDATE containers SET container_code = $1, size = $2 WHERE container_code = $3 RETURNING *',
-            [new_container_code, size, container_code]
+            'UPDATE containers SET container_code = $1, size = $2, owner_code = $3 WHERE container_code = $4 RETURNING *',
+            [new_container_code, size, owner_code, container_code]
         );
-
         if (result.rowCount === 0) {
             return res.status(404).send('Không tìm thấy container.');
         }
-
         res.status(200).json(result.rows[0]); // Trả về container đã được cập nhật
     } catch (err) {
         console.error('Error updating container:', err);
@@ -459,15 +463,47 @@ app.delete('/container-owners/:owner_code', async (req, res) => {
     }
 });
 
+// API cập nhật tên công ty sở hữu
+app.put('/container-owners/:owner_code', async (req, res) => {
+    const { owner_code } = req.params;
+    const { name } = req.body;
+    if (!name || name.trim() === '') {
+        return res.status(400).send('Tên công ty là bắt buộc.');
+    }
+    try {
+        const result = await pool.query(
+            'UPDATE container_owners SET name = $1 WHERE owner_code = $2 RETURNING *',
+            [name, owner_code]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).send('Không tìm thấy mã công ty.');
+        }
+        res.status(200).json(result.rows[0]);
+    } catch (err) {
+        console.error('Error updating container owner:', err);
+        res.status(500).send('Lỗi khi sửa tên công ty.');
+    }
+});
+
 // ====== API CRUD cho companies ======
-// Lấy danh sách companies (có phân trang)
+// Lấy danh sách companies (có phân trang hoặc tìm kiếm)
 app.get('/companies', async (req, res) => {
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = 20;
+    const limit = parseInt(req.query.limit, 10) || 20;
     const offset = (page - 1) * limit;
+    const search = req.query.search ? req.query.search.trim() : '';
     try {
-        const result = await pool.query('SELECT * FROM companies ORDER BY id LIMIT $1 OFFSET $2', [limit, offset]);
-        const totalResult = await pool.query('SELECT COUNT(*) FROM companies');
+        let result, totalResult;
+        if (search) {
+            result = await pool.query(
+                'SELECT * FROM companies WHERE name ILIKE $1 ORDER BY id LIMIT $2',
+                [`%${search}%`, limit]
+            );
+            totalResult = await pool.query('SELECT COUNT(*) FROM companies WHERE name ILIKE $1', [`%${search}%`]);
+        } else {
+            result = await pool.query('SELECT * FROM companies ORDER BY id LIMIT $1 OFFSET $2', [limit, offset]);
+            totalResult = await pool.query('SELECT COUNT(*) FROM companies');
+        }
         const totalCompanies = parseInt(totalResult.rows[0].count, 10);
         res.json({
             companies: result.rows || [],
@@ -565,7 +601,7 @@ app.get('/bookings', async (req, res) => {
 
 // Thêm booking mới
 app.post('/bookings', async (req, res) => {
-    let { booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type } = req.body;
+    let { booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee } = req.body;
     // Trim whitespace from container_code
     if (container_code) container_code = container_code.trim();
     if (!booking_no || !pickup_date || !company_name || !transporter_name || !container_code || !seal || !quantity || !size) {
@@ -593,15 +629,17 @@ app.post('/bookings', async (req, res) => {
             );
         }
 
-        // Kiểm tra booking_no đã tồn tại chưa
-        const existing = await pool.query('SELECT * FROM bookings WHERE booking_no = $1', [booking_no]);
+        // Kiểm tra xem đã có booking nào trùng toàn bộ thông tin (trừ loại hình) chưa
+        const existing = await pool.query(
+            `SELECT * FROM bookings WHERE booking_no = $1 AND pickup_date = $2 AND company_name = $3 AND transporter_name = $4 AND container_code = $5 AND seal = $6 AND quantity = $7 AND size = $8 AND pickup_location = $9 AND dropoff_location = $10 AND type = $11 AND extra_fee = $12`,
+            [booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee]
+        );
         if (existing.rows.length > 0) {
             return res.status(409).send('Booking đã tồn tại.');
         }
-        // Thêm booking
         const result = await pool.query(
-            'INSERT INTO bookings (booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
-            [booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type]
+            'INSERT INTO bookings (booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
+            [booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {

@@ -51,7 +51,8 @@ CREATE TABLE container_transactions (
 );
 
 CREATE TABLE bookings (
-    booking_no VARCHAR(50) PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    booking_no VARCHAR(50),
     pickup_date DATE NOT NULL,
     company_name VARCHAR(100) NOT NULL,
     transporter_name VARCHAR(70) NOT NULL,
@@ -62,7 +63,14 @@ CREATE TABLE bookings (
     pickup_location VARCHAR(255),
     dropoff_location VARCHAR(255),
     type VARCHAR(20),
+    extra_fee VARCHAR(255), -- Chi phí phụ (ghi chú)
     CONSTRAINT fk_container_code FOREIGN KEY (container_code) REFERENCES containers(container_code)
+);
+
+-- Đảm bảo không có 2 booking nào trùng hoàn toàn mọi trường (trừ id)
+CREATE UNIQUE INDEX unique_booking_all_fields
+ON bookings (
+    booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee
 );
 
 -- Xem dữ liệu mẫu

@@ -8,6 +8,7 @@ async function addContainer() {
     let containerCode = document.getElementById('containerId').value;
     containerCode = containerCode.trim();
     const containerSize = document.getElementById('containerSize').value;
+    const ownerCode = document.getElementById('containerOwner').value;
 
     if (!containerCode || containerCode.length !== 11) {
         alert('Mã số container phải có 11 ký tự.');
@@ -17,11 +18,15 @@ async function addContainer() {
         alert('Mã số container không hợp lệ. Mã số Container phải là ABCD1234567.');
         return;
     }
+    if (!ownerCode) {
+        alert('Vui lòng chọn chủ sở hữu.');
+        return;
+    }
     try {
         const response = await fetch('http://localhost:3000/containers', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ container_code: containerCode, size: containerSize }),
+            body: JSON.stringify({ container_code: containerCode, size: containerSize, owner_code: ownerCode }),
         });
 
         if (response.ok) {
@@ -37,6 +42,7 @@ async function addContainer() {
 }
 
 async function deleteContainer(containerCode) {
+    if (!confirm('Bạn có chắc chắn muốn xóa container này?')) return;
     try {
         const response = await fetch(`http://localhost:3000/containers/${containerCode}`, {
             method: 'DELETE',
@@ -56,42 +62,81 @@ async function deleteContainer(containerCode) {
     }
 }
 
-async function updateContainer(containerCode, currentSize) {
-    const newContainerCodeRaw = prompt('Nhập mã số container mới:', containerCode);
-    const newContainerCode = newContainerCodeRaw ? newContainerCodeRaw.trim() : '';
-    const newSize = prompt('Nhập kích cỡ mới:', currentSize);
-
-    if (!isValidContainerCode(newContainerCode)) {
-        alert('Mã số container không hợp lệ. Mã số Container phải là ABCD1234567.');
-        return;
+async function fetchOwners() {
+    try {
+        const response = await fetch('http://localhost:3000/container-owners');
+        if (!response.ok) throw new Error('Lỗi khi lấy danh sách chủ sở hữu');
+        const owners = await response.json();
+        const ownerSelect = document.getElementById('containerOwner');
+        ownerSelect.innerHTML = '<option value="">--Chọn công ty--</option>';
+        owners.forEach(owner => {
+            const option = document.createElement('option');
+            option.value = owner.owner_code;
+            option.textContent = `${owner.owner_code} - ${owner.name || ''}`;
+            ownerSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error fetching owners:', error);
     }
-    if (newContainerCode && newSize) {
+}
+
+// Sửa container: mở form với dữ liệu hiện tại và cho phép chỉnh owner
+async function updateContainer(containerCode, currentSize) {
+    // Lấy dữ liệu container hiện tại từ bảng (hoặc fetch lại nếu cần)
+    const tableRows = document.getElementById('containerTableBody').getElementsByTagName('tr');
+    let ownerCode = '';
+    for (let row of tableRows) {
+        if (row.cells[0].textContent === containerCode) {
+            ownerCode = row.cells[2].textContent;
+            break;
+        }
+    }
+    // Hiển thị form và điền dữ liệu
+    showForm();
+    await fetchOwners();
+    document.getElementById('containerId').value = containerCode;
+    document.getElementById('containerSize').value = currentSize;
+    document.getElementById('containerOwner').value = ownerCode;
+    // Đổi nút Lưu để cập nhật
+    const saveBtn = document.querySelector('#formButtons button[onclick^="addContainer"]');
+    saveBtn.textContent = 'Cập nhật';
+    saveBtn.onclick = async function() {
+        const newContainerCode = document.getElementById('containerId').value.trim();
+        const newSize = document.getElementById('containerSize').value;
+        const newOwnerCode = document.getElementById('containerOwner').value;
+        if (!isValidContainerCode(newContainerCode)) {
+            alert('Mã số container không hợp lệ. Mã số Container phải là ABCD1234567.');
+            return;
+        }
+        if (!newOwnerCode) {
+            alert('Vui lòng chọn chủ sở hữu.');
+            return;
+        }
         try {
             const response = await fetch(`http://localhost:3000/containers/${containerCode}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     new_container_code: newContainerCode,
                     size: newSize,
-                }),
+                    owner_code: newOwnerCode
+                })
             });
-
             if (response.status === 400) {
                 const errorText = await response.text();
                 alert(errorText);
             } else if (response.ok) {
-                // Làm mới danh sách container
                 fetchContainers();
+                hideForm();
+                // Đặt lại nút Lưu về trạng thái thêm mới
+                saveBtn.textContent = 'Lưu';
+                saveBtn.onclick = addContainer;
             }
         } catch (error) {
             console.error('Error updating container:', error);
             alert('Không thể sửa container. Vui lòng thử lại.');
         }
-    } else {
-        alert('Vui lòng nhập đầy đủ thông tin.');
-    }
+    };
 }
 
 async function uploadExcel() {
@@ -207,6 +252,7 @@ function showForm() {
 
     // Ẩn nút Thêm container
     document.getElementById('showFormButton').style.display = 'none';
+    fetchOwners();
 }
 
 // Ẩn form nhập thông tin
@@ -239,6 +285,13 @@ function searchContainer() {
 function refreshData() {
     fetchContainers(); // Gọi lại hàm fetchContainers để làm mới dữ liệu
 }
+
+// Lắng nghe sự kiện cập nhật tên công ty từ trang codecontainerOwner.html
+window.addEventListener('storage', function(event) {
+    if (event.key === 'containerOwnerUpdated') {
+        fetchContainers(); // Tự động reload bảng container khi tên công ty đổi
+    }
+});
 
 // Fetch containers on page load
 document.addEventListener('DOMContentLoaded', fetchContainers);

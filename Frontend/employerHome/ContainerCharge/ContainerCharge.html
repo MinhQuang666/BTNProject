@@ -34,15 +34,9 @@
                 <div id="totalQuantity" class="summary-value summary-orange">0</div>
             </div>
         </div>
-        <!-- Filter Bar -->
-        <div class="filter-bar">
-            <label for="filterDate">Ngày lấy:</label>
-            <input type="date" id="filterDate">
-            <button id="filterBtn" type="button">Lọc</button>
-            <button id="clearFilterBtn" type="button">Xóa lọc</button>
-        </div>
         <div class="booking-list-panel">
             <h2>Danh sách Booking</h2>
+            <button id="refreshBookingBtn" style="margin-bottom:10px; background:#2196F3; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-weight:500; cursor:pointer;">Làm mới dữ liệu</button>
             <div style="overflow-x:auto;">
                 <table id="bookingList">
                     <thead>
@@ -53,11 +47,26 @@
                             <th>BK No</th>
                             <th>Mã số Container</th>
                             <th>Seal</th>
-                            <th>Loại hình</th>
-                            <th>Số lượng</th>
-                            <th>Kích cỡ</th>
+                            <th style="width:80px;">Loại hình</th>
+                            <th style="width:5px;">Số lượng</th>
+                            <th style="width:10px;">Kích cỡ</th>
                             <th>Nơi lấy Container</th>
                             <th>Nơi hạ Container</th>
+                            <th>Chi phí phụ</th>
+                        </tr>
+                        <tr id="filterRow">
+                            <th><input type="date" id="filter-pickup_date" style="width:100%"></th>
+                            <th><select id="filter-company_name" style="width:110%"><option value="">Tất cả</option></select></th>
+                            <th><select id="filter-transporter_name" style="width:100%"><option value="">Tất cả</option></select></th>
+                            <th><input type="text" id="filter-booking_no" style="width:100%"></th>
+                            <th><input type="text" id="filter-container_code" style="width:100%"></th>
+                            <th><input type="text" id="filter-seal" style="width:100%"></th>
+                            <th><input type="text" id="filter-type" style="width:100%" ></th>
+                            <th><input type="text" id="filter-quantity" style="width:100%" ></th>
+                            <th><input type="text" id="filter-size" style="width:100%" ></th>
+                            <th><input type="text" id="filter-pickup_location" style="width:100%"></th>
+                            <th><input type="text" id="filter-dropoff_location" style="width:100%"></th>
+                            <th><input type="text" id="filter-extra_fee" style="width:100%"></th>
                         </tr>
                     </thead>
                     <tbody>

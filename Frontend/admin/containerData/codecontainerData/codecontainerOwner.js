@@ -14,6 +14,11 @@ function hideForm() {
     document.getElementById('formButtons').style.display = 'none';
     document.getElementById('showFormButton').style.display = 'block';
     document.getElementById('ownerForm').reset(); // Reset form
+    document.getElementById('ownerCode').disabled = false;
+    // Đặt lại nút Lưu về trạng thái thêm mới
+    const saveBtn = document.querySelector('#formButtons button');
+    saveBtn.textContent = 'Lưu';
+    saveBtn.onclick = addOwner;
 }
 
 // Hàm hiển thị danh sách mã công ty sở hữu
@@ -33,6 +38,13 @@ function renderOwnerTable() {
         newRow.appendChild(nameCell);
 
         const actionsCell = document.createElement('td');
+        // Nút Sửa
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Sửa';
+        editButton.className = 'update';
+        editButton.onclick = () => editOwner(index);
+        actionsCell.appendChild(editButton);
+        // Nút Xóa
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Xóa';
         deleteButton.className = 'delete';
@@ -104,6 +116,52 @@ async function deleteOwner(index) {
             alert('Không thể xóa mã công ty. Vui lòng thử lại.');
         }
     }
+}
+
+// Hàm sửa tên công ty sở hữu
+function editOwner(index) {
+    const owner = ownerData[index];
+    document.getElementById('ownerForm').style.display = 'block';
+    document.getElementById('formButtons').style.display = 'block';
+    document.getElementById('showFormButton').style.display = 'none';
+    document.getElementById('ownerCode').value = owner.owner_code;
+    document.getElementById('ownerCode').disabled = true; // Không cho sửa mã
+    document.getElementById('ownerName').value = owner.name;
+    // Đổi nút Lưu thành Cập nhật
+    const saveBtn = document.querySelector('#formButtons button[onclick^="addOwner"]');
+    saveBtn.textContent = 'Cập nhật';
+    saveBtn.onclick = async function() {
+        const newName = document.getElementById('ownerName').value;
+        if (!newName) {
+            alert('Vui lòng nhập tên công ty.');
+            return;
+        }
+        try {
+            const response = await fetch(`http://localhost:3000/container-owners/${owner.owner_code}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newName })
+            });
+            // Sau khi cập nhật tên công ty thành công
+            if (response.ok) {
+                ownerData[index].name = newName;
+                renderOwnerTable();
+                hideForm();
+                // Đặt lại nút Lưu về trạng thái thêm mới
+                saveBtn.textContent = 'Lưu';
+                saveBtn.onclick = addOwner;
+                document.getElementById('ownerCode').disabled = false;
+                // Thông báo cho trang containerdata.html tự reload
+                localStorage.setItem('containerOwnerUpdated', Date.now().toString());
+            } else {
+                const errorText = await response.text();
+                alert(errorText);
+            }
+        } catch (error) {
+            console.error('Error updating owner:', error);
+            alert('Không thể sửa tên công ty. Vui lòng thử lại.');
+        }
+    };
 }
 
 // Hàm lấy danh sách mã công ty sở hữu

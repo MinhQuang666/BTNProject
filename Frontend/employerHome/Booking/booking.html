@@ -6,6 +6,9 @@
     <title>Quản lý Booking</title>
     <link rel="stylesheet" href="../employerHome.css">
     <script src="booking.js" defer></script>
+    <link rel="stylesheet" href="select2.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="select2.min.js"></script>
 </head>
 <body>
     <header>
@@ -30,6 +33,7 @@
         <div id="bookingListContainer">
             <h2>Danh sách Booking</h2>
             <button id="refreshBookingBtn" style="margin-bottom:10px; background:#2196F3; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-weight:500; cursor:pointer;">Làm mới dữ liệu</button>
+            <button id="toggleActionColBtn" style="margin-bottom:10px; background:#FF9800; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-weight:500; cursor:pointer;">Hiện cột Hành động</button>
             <table id="bookingList">
                 <caption>
                     <button id="newBookingButton" class="btn btn-primary" onclick="showBookingForm()">+ Booking mới</button>
@@ -42,12 +46,28 @@
                         <th>BK No</th>
                         <th>Mã số Container</th>
                         <th>Seal</th>
-                        <th>Loại hình</th>
-                        <th>Số lượng</th>
-                        <th>Kích cỡ</th>
+                        <th style="width:70px;">Loại hình</th>
+                        <th style="width:70px;">Số lượng</th>
+                        <th style="width:70px;">Kích cỡ</th>
                         <th>Nơi lấy Container</th>
                         <th>Nơi hạ Container</th>
-                        <th>Hành động</th>
+                        <th>Chi phí phụ</th>
+                        <th id="actionHeader" style="display:none;">Hành động</th>
+                    </tr>
+                    <tr id="filterRow">
+                        <th><input type="date" id="filter-pickup_date" style="width:100%"></th>
+                        <th><select id="filter-company_name" style="width:100%"><option value="">--Tất cả--</option></select></th>
+                        <th><select id="filter-transporter_name" style="width:100%"><option value="">--Tất cả--</option></select></th>
+                        <th><input type="text" id="filter-booking_no" style="width:100%"></th>
+                        <th><input type="text" id="filter-container_code" style="width:100%"></th>
+                        <th><input type="text" id="filter-seal" style="width:100%"></th>
+                        <th><input type="text" id="filter-type" style="width:100%" placeholder="Nhập/Xuất"></th>
+                        <th><input type="text" id="filter-quantity" style="width:100%" placeholder="Số lượng"></th>
+                        <th><input type="text" id="filter-size" style="width:100%" placeholder="Kích cỡ"></th>
+                        <th><input type="text" id="filter-pickup_location" style="width:100%"></th>
+                        <th><input type="text" id="filter-dropoff_location" style="width:100%"></th>
+                        <th><input type="text" id="filter-extra_fee" style="width:100%"></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,9 +134,13 @@
                     <div class="form-group">
                         <label for="type">Loại hình:</label>
                         <select id="type" name="type" required>
-                            <option value="import">Nhập khẩu</option>
-                            <option value="export" selected>Xuất khẩu</option>
+                            <option value="import">Nhập</option>
+                            <option value="export" selected>Xuất</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="extraFee">Chi phí phụ:</label>
+                        <input type="text" id="extraFee" name="extraFee" placeholder="Cược phí phụ" required>
                     </div>
                 </div>
                 <div class="form-buttons">
@@ -152,12 +176,122 @@ document.getElementById('bookingForm').addEventListener('submit', function(e) {
     // ...existing code for submit...
 });
 
+document.getElementById('toggleActionColBtn').addEventListener('click', function() {
+    const table = document.getElementById('bookingList');
+    const actionHeader = document.getElementById('actionHeader');
+    const rows = table.querySelectorAll('tbody tr');
+    const show = actionHeader.style.display === 'none';
+    actionHeader.style.display = show ? '' : 'none';
+    // Hiện/ẩn từng ô hành động trong tbody
+    rows.forEach(row => {
+        if (row.children.length > 12) {
+            row.children[12].style.display = show ? '' : 'none';
+        }
+    });
+    // Đổi text nút
+    this.textContent = show ? 'Ẩn cột Hành động' : 'Hiện cột Hành động';
+});
+
 function showToast(msg) {
     var toast = document.getElementById('toast');
     toast.innerText = msg;
     toast.style.display = 'block';
     setTimeout(function() { toast.style.display = 'none'; }, 3000);
 }
+
+// Khi render bảng booking, mặc định ẩn cột hành động
+function renderBookingList() {
+    // ...existing code...
+    pageBookings.forEach(booking => {
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>${formatDate(booking.pickup_date) || ''}</td>
+            <td>${booking.company_name || ''}</td>
+            <td>${booking.transporter_name || ''}</td>
+            <td>${booking.booking_no || ''}</td>
+            <td>${booking.container_code || ''}</td>
+            <td>${booking.seal || ''}</td>
+            <td>${booking.type === 'import' ? 'Nhập' : booking.type === 'export' ? 'Xuất' : (booking.type || '')}</td>
+            <td>${booking.quantity || ''}</td>
+            <td>${booking.size || ''}</td>
+            <td>${booking.pickup_location || ''}</td>
+            <td>${booking.dropoff_location || ''}</td>
+            <td>${booking.extra_fee || ''}</td>
+            <td style="display:none"><button onclick="deleteBooking(this)">Xóa</button></td>
+        `;
+        tableBody.appendChild(newRow);
+    });
+    // ...existing code...
+}
+
+// Tích hợp Select2 cho select công ty (form)
+$('#company').select2({
+    width: '100%',
+    placeholder: '-- Chọn công ty --',
+    allowClear: true,
+    minimumResultsForSearch: 0, // Luôn hiện thanh tìm kiếm
+    ajax: {
+        url: 'http://localhost:3000/companies',
+        dataType: 'json',
+        delay: 250,
+        data: function(params) {
+            return {
+                search: params.term || '',
+                limit: 20
+            };
+        },
+        processResults: function(data) {
+            return {
+                results: (data.companies || []).map(function(company) {
+                    return { id: company.name, text: company.name };
+                })
+            };
+        },
+        cache: true
+    },
+    language: {
+        inputTooShort: function() { return 'Nhập để tìm công ty'; },
+        noResults: function() { return 'Không tìm thấy công ty phù hợp'; },
+        searching: function() { return 'Đang tìm...'; }
+    },
+    minimumInputLength: 0
+});
+// Tích hợp Select2 cho select filter công ty (lọc bảng)
+$('#filter-company_name').select2({
+    width: '100%',
+    placeholder: '--Tất cả--',
+    allowClear: true,
+    minimumResultsForSearch: 0, // Luôn hiện thanh tìm kiếm
+    ajax: {
+        url: 'http://localhost:3000/companies',
+        dataType: 'json',
+        delay: 250,
+        data: function(params) {
+            return {
+                search: params.term || '',
+                limit: 20
+            };
+        },
+        processResults: function(data) {
+            return {
+                results: (data.companies || []).map(function(company) {
+                    return { id: company.name, text: company.name };
+                })
+            };
+        },
+        cache: true
+    },
+    language: {
+        inputTooShort: function() { return 'Nhập để tìm công ty'; },
+        noResults: function() { return 'Không tìm thấy công ty phù hợp'; },
+        searching: function() { return 'Đang tìm...'; }
+    },
+    minimumInputLength: 0
+});
+// Khi chọn filter-company_name thì trigger filterBookingTable nếu có
+$('#filter-company_name').on('change', function() {
+    if (typeof filterBookingTable === 'function') filterBookingTable();
+});
 </script>
 </body>
 </html>

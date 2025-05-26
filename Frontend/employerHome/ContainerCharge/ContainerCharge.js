@@ -29,11 +29,26 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderBookingList() {
         const tableBody = document.querySelector('#bookingList tbody');
         tableBody.innerHTML = '';
-        const filterDate = filterDateInput.value;
-        let bookingsToShow = allBookings;
-        if (filterDate) {
-            bookingsToShow = allBookings.filter(b => (b.pickup_date && b.pickup_date.startsWith(filterDate)));
-        }
+        // Lấy filter từ các input
+        const filters = {};
+        filterInputs.forEach(field => {
+            const input = document.getElementById('filter-' + field);
+            filters[field] = input ? input.value.trim().toLowerCase() : '';
+        });
+        let bookingsToShow = allBookings.filter(booking => {
+            // So sánh từng trường với filter, nếu có filter thì phải match
+            return filterInputs.every((field, idx) => {
+                const filterVal = filters[field];
+                if (!filterVal) return true;
+                let bookingVal = (booking[field] || '').toString().toLowerCase();
+                // Đặc biệt cho loại hình: import/export => Nhập/Xuất
+                if (field === 'type') {
+                    if (bookingVal === 'import') bookingVal = 'nhập';
+                    if (bookingVal === 'export') bookingVal = 'xuất';
+                }
+                return bookingVal.includes(filterVal);
+            });
+        });
         bookingsToShow.forEach(booking => {
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
@@ -43,11 +58,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${booking.booking_no || ''}</td>
                 <td>${booking.container_code || ''}</td>
                 <td>${booking.seal || ''}</td>
-                <td>${booking.type || ''}</td>
+                <td>${booking.type === 'import' ? 'Nhập' : booking.type === 'export' ? 'Xuất' : (booking.type || '')}</td>
                 <td>${booking.quantity || ''}</td>
                 <td>${booking.size || ''}</td>
                 <td>${booking.pickup_location || ''}</td>
                 <td>${booking.dropoff_location || ''}</td>
+                <td>${booking.extra_fee || ''}</td>
             `;
             tableBody.appendChild(newRow);
         });
@@ -64,13 +80,97 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${yyyy}-${mm}-${dd}`;
     }
 
-    // Sự kiện lọc
-    document.getElementById('filterBtn').addEventListener('click', renderBookingList);
-    document.getElementById('clearFilterBtn').addEventListener('click', function() {
-        filterDateInput.value = '';
-        renderBookingList();
+    // Lấy danh sách công ty và nhà xe cho filter select
+    async function loadFilterCompanies() {
+        try {
+            const response = await fetch('http://localhost:3000/companies?page=1');
+            if (!response.ok) return;
+            const data = await response.json();
+            const companies = data.companies || [];
+            const select = document.getElementById('filter-company_name');
+            select.innerHTML = '<option value="">--Tất cả--</option>';
+            companies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company.name;
+                option.textContent = company.name;
+                select.appendChild(option);
+            });
+        } catch (err) {}
+    }
+    async function loadFilterTransporters() {
+        try {
+            const response = await fetch('http://localhost:3000/transporters?page=1');
+            if (!response.ok) return;
+            const data = await response.json();
+            const transporters = data.transporters || [];
+            const select = document.getElementById('filter-transporter_name');
+            select.innerHTML = '<option value="">--Tất cả--</option>';
+            transporters.forEach(transporter => {
+                const option = document.createElement('option');
+                option.value = transporter.name;
+                option.textContent = transporter.name;
+                select.appendChild(option);
+            });
+        } catch (err) {}
+    }
+
+    // Lọc dữ liệu bảng booking theo từng cột
+    const filterInputs = [
+        'pickup_date', 'company_name', 'transporter_name', 'booking_no', 'container_code', 'seal', 'type', 'quantity', 'size', 'pickup_location', 'dropoff_location', 'extra_fee'
+    ];
+    filterInputs.forEach(field => {
+        const input = document.getElementById('filter-' + field);
+        if (input) {
+            input.addEventListener('input', filterBookingTable);
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', filterBookingTable);
+            }
+        }
+    });
+
+    function filterBookingTable() {
+        const table = document.getElementById('bookingList');
+        const tbody = table.querySelector('tbody');
+        const rows = tbody.getElementsByTagName('tr');
+        const filters = {};
+        filterInputs.forEach(field => {
+            const val = document.getElementById('filter-' + field).value.trim().toLowerCase();
+            filters[field] = val;
+        });
+        for (let i = 0; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName('td');
+            let show = true;
+            for (let j = 0; j < filterInputs.length; j++) {
+                const filterVal = filters[filterInputs[j]];
+                if (filterVal) {
+                    const cellText = (cells[j]?.textContent || '').toLowerCase();
+                    if (!cellText.includes(filterVal)) {
+                        show = false;
+                        break;
+                    }
+                }
+            }
+            rows[i].style.display = show ? '' : 'none';
+        }
+    }
+
+    // Gọi khi trang load
+    window.addEventListener('DOMContentLoaded', function() {
+        loadFilterCompanies();
+        loadFilterTransporters();
     });
 
     // Tải dữ liệu ban đầu
     fetchBookings();
+
+    document.getElementById('refreshBookingBtn').addEventListener('click', function() {
+        fetchBookings();
+    });
+
+    // Lắng nghe sự kiện cập nhật booking từ trang booking.html hoặc ContainerCharge.html
+    window.addEventListener('storage', function(event) {
+        if (event.key === 'bookingListUpdated') {
+            if (typeof fetchBookings === 'function') fetchBookings();
+        }
+    });
 });
