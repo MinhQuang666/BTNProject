@@ -600,36 +600,29 @@ app.get('/bookings', async (req, res) => {
 });
 
 // Thêm booking mới
+// Tự động đồng bộ bookings -> booking_details khi thêm mới booking
 app.post('/bookings', async (req, res) => {
-    let { booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee } = req.body;
-    // Trim whitespace from container_code
+    let { booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee, invoice_company, shipping_line } = req.body;
     if (container_code) container_code = container_code.trim();
     if (!booking_no || !pickup_date || !company_name || !transporter_name || !container_code || !seal || !quantity || !size) {
         return res.status(400).send('Thiếu thông tin bắt buộc.');
     }
-    // Validate container code format after trim
     if (!isValidContainerCode(container_code)) {
         return res.status(400).send('Mã số Container không hợp lệ. Phải là 4 chữ cái in hoa + 7 số (VD: ABCD1234567)');
     }
     try {
-        // Kiểm tra container đã tồn tại chưa
         let containerResult = await pool.query('SELECT * FROM containers WHERE container_code = $1', [container_code]);
         if (containerResult.rows.length === 0) {
-            // Nếu chưa có, kiểm tra owner_code
             const owner_code = container_code.substring(0, 3).toUpperCase();
             let ownerResult = await pool.query('SELECT * FROM container_owners WHERE owner_code = $1', [owner_code]);
             if (ownerResult.rows.length === 0) {
-                // Nếu chưa có owner_code thì thêm mới với tên là NULL
                 await pool.query('INSERT INTO container_owners (owner_code, name) VALUES ($1, NULL)', [owner_code]);
             }
-            // Thêm container mới
             await pool.query(
                 'INSERT INTO containers (container_code, size, owner_code) VALUES ($1, $2, $3)',
                 [container_code, size, owner_code]
             );
         }
-
-        // Kiểm tra xem đã có booking nào trùng toàn bộ thông tin (trừ loại hình) chưa
         const existing = await pool.query(
             `SELECT * FROM bookings WHERE booking_no = $1 AND pickup_date = $2 AND company_name = $3 AND transporter_name = $4 AND container_code = $5 AND seal = $6 AND quantity = $7 AND size = $8 AND pickup_location = $9 AND dropoff_location = $10 AND type = $11 AND extra_fee = $12`,
             [booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee]
@@ -638,9 +631,20 @@ app.post('/bookings', async (req, res) => {
             return res.status(409).send('Booking đã tồn tại.');
         }
         const result = await pool.query(
-            'INSERT INTO bookings (booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
-            [booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee]
+            'INSERT INTO bookings (booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee, invoice_company, shipping_line) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
+            [booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee, invoice_company, shipping_line]
         );
+        // Tự động thêm vào booking_details nếu chưa có
+        try {
+            await pool.query(
+                `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                ON CONFLICT DO NOTHING`,
+                [booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee]
+            );
+        } catch (err) {
+            console.error('Error syncing to booking_details:', err);
+        }
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Error adding booking:', err);
@@ -667,11 +671,30 @@ app.put('/bookings/:booking_no', async (req, res) => {
     }
 });
 
-// Xóa booking
-app.delete('/bookings/:booking_no', async (req, res) => {
-    const { booking_no } = req.params;
+// Xóa booking (xác định duy nhất bằng nhiều trường)
+app.delete('/bookings', async (req, res) => {
+    const {
+        booking_no,
+        pickup_date,
+        company_name,
+        transporter_name,
+        container_code,
+        seal,
+        type,
+        quantity,
+        size,
+        pickup_location,
+        dropoff_location,
+        extra_fee
+    } = req.body;
+    if (!booking_no || !pickup_date || !company_name || !transporter_name || !container_code || !seal || !type) {
+        return res.status(400).send('Thiếu thông tin định danh để xóa booking.');
+    }
     try {
-        const result = await pool.query('DELETE FROM bookings WHERE booking_no = $1', [booking_no]);
+        const result = await pool.query(
+            `DELETE FROM bookings WHERE booking_no = $1 AND pickup_date = $2 AND company_name = $3 AND transporter_name = $4 AND container_code = $5 AND seal = $6 AND type = $7 AND quantity = $8 AND size = $9 AND pickup_location = $10 AND dropoff_location = $11 AND extra_fee = $12`,
+            [booking_no, pickup_date, company_name, transporter_name, container_code, seal, type, quantity, size, pickup_location, dropoff_location, extra_fee]
+        );
         if (result.rowCount === 0) {
             return res.status(404).send('Không tìm thấy booking.');
         }
@@ -679,6 +702,201 @@ app.delete('/bookings/:booking_no', async (req, res) => {
     } catch (err) {
         console.error('Error deleting booking:', err);
         res.status(500).send('Lỗi khi xóa booking.');
+    }
+});
+
+// API lấy danh sách booking_details (có phân trang, tìm kiếm)
+app.get('/booking-details', async (req, res) => {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const offset = (page - 1) * limit;
+    const search = req.query.search ? req.query.search.trim() : '';
+    try {
+        let result, totalResult;
+        if (search) {
+            result = await pool.query(
+                `SELECT id, booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, thanh_ly, phu_thu, hoa_don, ngay_hd, cai_mep, phi_hun_trung, kiem_hoa, xin_so_cont, qua_tai, phi_van_chuyen, vat_8, ghi_chu FROM booking_details WHERE booking_no ILIKE $1 ORDER BY pickup_date DESC LIMIT $2 OFFSET $3`,
+                [`%${search}%`, limit, offset]
+            );
+            totalResult = await pool.query('SELECT COUNT(*) FROM booking_details WHERE booking_no ILIKE $1', [`%${search}%`]);
+        } else {
+            result = await pool.query('SELECT id, booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, thanh_ly, phu_thu, hoa_don, ngay_hd, cai_mep, phi_hun_trung, kiem_hoa, xin_so_cont, qua_tai, phi_van_chuyen, vat_8, ghi_chu FROM booking_details ORDER BY pickup_date DESC LIMIT $1 OFFSET $2', [limit, offset]);
+            totalResult = await pool.query('SELECT COUNT(*) FROM booking_details');
+        }
+        const total = parseInt(totalResult.rows[0].count, 10);
+        res.json({
+            bookingDetails: result.rows || [],
+            total,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page,
+        });
+    } catch (err) {
+        console.error('Error fetching booking_details:', err);
+        if (err.stack) console.error(err.stack);
+        res.status(500).send('Lỗi khi lấy danh sách booking_details.');
+    }
+});
+
+// API cập nhật thông tin bổ sung cho booking_details
+app.put('/booking-details/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            transport_company_name, // tên công ty nhà xe từ frontend
+            shipping_line,
+            receiving_price,
+            delivery_price,
+            lifting_fee,
+            lifting_invoice,
+            lifting_invoice_date,
+            lifting_invoice_supplier,
+            lowering_fee,
+            lowering_invoice,
+            lowering_invoice_date,
+            lowering_invoice_supplier,
+            thanh_ly,
+            phu_thu,
+            hoa_don,
+            ngay_hd,
+            cai_mep,
+            phi_hun_trung,
+            kiem_hoa,
+            xin_so_cont,
+            qua_tai,
+            phi_van_chuyen,
+            vat_8,
+            ghi_chu
+        } = req.body;
+        // Debug log incoming data
+        console.log('PUT /booking-details/:id', { id, body: req.body });
+        // Sanitize numeric and date fields
+        function toNumberOrNull(val) {
+            if (val === undefined || val === null || val === '') return null;
+            const n = Number(val);
+            return isNaN(n) ? null : n;
+        }
+        function toDateOrNull(val) {
+            if (!val || val === '') return null;
+            return val;
+        }
+        // Nếu transport_company_name bị bỏ trống, mặc định = company_name
+        let finalTransportCompanyName = transport_company_name;
+        if (!finalTransportCompanyName || finalTransportCompanyName.trim() === '') {
+            // Lấy company_name từ booking_details
+            const companyResult = await pool.query('SELECT company_name FROM booking_details WHERE id = $1', [id]);
+            finalTransportCompanyName = (companyResult.rows[0] && companyResult.rows[0].company_name) || '';
+        }
+        const sanitized = {
+            transport_company_name: finalTransportCompanyName,
+            shipping_line,
+            receiving_price: toNumberOrNull(receiving_price),
+            delivery_price: toNumberOrNull(delivery_price),
+            lifting_fee: toNumberOrNull(lifting_fee),
+            lifting_invoice,
+            lifting_invoice_date: toDateOrNull(lifting_invoice_date),
+            lifting_invoice_supplier,
+            lowering_fee: toNumberOrNull(lowering_fee),
+            lowering_invoice,
+            lowering_invoice_date: toDateOrNull(lowering_invoice_date),
+            lowering_invoice_supplier,
+            thanh_ly,
+            phu_thu: toNumberOrNull( phu_thu ),
+            hoa_don,
+            ngay_hd: toDateOrNull( ngay_hd ),
+            cai_mep,
+            phi_hun_trung: toNumberOrNull( phi_hun_trung ),
+            kiem_hoa: toNumberOrNull( kiem_hoa ),
+            xin_so_cont,
+            qua_tai: toNumberOrNull( qua_tai ),
+            phi_van_chuyen: toNumberOrNull( phi_van_chuyen ),
+            vat_8: toNumberOrNull( vat_8 ),
+            ghi_chu
+        };
+        const result = await pool.query(
+            `UPDATE booking_details SET
+                shipping_line = $1,
+                receiving_price = $2,
+                delivery_price = $3,
+                lifting_fee = $4,
+                lifting_invoice = $5,
+                lifting_invoice_date = $6,
+                lifting_invoice_supplier = $7,
+                lowering_fee = $8,
+                lowering_invoice = $9,
+                lowering_invoice_date = $10,
+                lowering_invoice_supplier = $11,
+                thanh_ly = $12,
+                phu_thu = $13,
+                hoa_don = $14,
+                ngay_hd = $15,
+                cai_mep = $16,
+                phi_hun_trung = $17,
+                kiem_hoa = $18,
+                xin_so_cont = $19,
+                qua_tai = $20,
+                phi_van_chuyen = $21,
+                vat_8 = $22,
+                ghi_chu = $23
+            WHERE id = $24 RETURNING *`,
+            [
+                sanitized.shipping_line,
+                sanitized.receiving_price,
+                sanitized.delivery_price,
+                sanitized.lifting_fee,
+                sanitized.lifting_invoice,
+                sanitized.lifting_invoice_date,
+                sanitized.lifting_invoice_supplier,
+                sanitized.lowering_fee,
+                sanitized.lowering_invoice,
+                sanitized.lowering_invoice_date,
+                sanitized.lowering_invoice_supplier,
+                sanitized.thanh_ly,
+                sanitized.phu_thu,
+                sanitized.hoa_don,
+                sanitized.ngay_hd,
+                sanitized.cai_mep,
+                sanitized.phi_hun_trung,
+                sanitized.kiem_hoa,
+                sanitized.xin_so_cont,
+                sanitized.qua_tai,
+                sanitized.phi_van_chuyen,
+                sanitized.vat_8,
+                sanitized.ghi_chu,
+                id
+            ]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).send('Không tìm thấy booking_details.');
+        }
+        res.status(200).json(result.rows[0]);
+    } catch (err) {
+        console.error('Error updating booking_details:', err);
+        res.status(500).send('Lỗi khi cập nhật booking_details.');
+    }
+});
+
+// API xóa booking_details theo id
+app.delete('/booking-details/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM booking_details WHERE id = $1', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).send('Không tìm thấy booking_details.');
+        }
+        res.status(200).send('Booking details đã được xóa.');
+    } catch (err) {
+        console.error('Error deleting booking_details:', err);
+        res.status(500).send('Lỗi khi xóa booking_details.');
+    }
+});
+
+// API lấy danh sách transport_companies (dùng cho dropdown, không lỗi nếu không có bảng)
+app.get('/transport_companies', async (req, res) => {
+    try {
+        // Nếu không có bảng, trả về mảng rỗng để frontend không lỗi
+        res.json({ companies: [] });
+    } catch (err) {
+        res.json({ companies: [] });
     }
 });
 

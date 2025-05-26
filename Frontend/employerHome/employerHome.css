@@ -360,3 +360,154 @@ input[type="text"], select {
     margin: 30px auto;
     padding: 30px 30px 10px 30px;
 }
+
+/* Thêm CSS cho trạng thái chờ tính phí và modal */
+.booking-row.waiting-charge {
+    background: #fff !important;
+}
+
+.charge-btn {
+    background: #2196F3;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 6px 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: background 0.2s;
+}
+.charge-btn:hover {
+    background: #1769aa;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.3);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    min-width: 350px;
+    max-width: 90vw;
+    position: relative;
+}
+
+/* --- ContainerCharge page: Action buttons & Charge form --- */
+.booking-list-panel .action-btn {
+    min-width: 90px;
+    padding: 7px 0;
+    border: none;
+    border-radius: 5px;
+    font-weight: 500;
+    font-size: 15px;
+    margin: 2px 2px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    display: inline-block;
+    text-align: center;
+}
+.booking-list-panel .detail-btn.action-btn {
+    background: #1976d2 !important;
+    color: #fff !important;
+}
+.booking-list-panel .detail-btn.action-btn:hover {
+    background: #1251a3 !important;
+}
+.booking-list-panel .charge-btn.action-btn {
+    background: #ff9800 !important;
+    color: #fff !important;
+}
+.booking-list-panel .charge-btn.action-btn:hover {
+    background: #e65100 !important;
+}
+.booking-list-panel .delete-detail-btn.action-btn {
+    background: #dc3545 !important;
+    color: #fff !important;
+}
+.booking-list-panel .delete-detail-btn.action-btn:hover {
+    background: #a71d2a !important;
+}
+.booking-list-panel td {
+    vertical-align: middle;
+    text-align: center;
+}
+/* Cải thiện form tính phí */
+#chargeModal .modal-content {
+    max-width: 600px;
+    min-width: 350px;
+    padding: 32px 28px 24px 28px;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
+#chargeForm {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 24px;
+    align-items: center;
+}
+#chargeForm label {
+    font-weight: 500;
+    margin-bottom: 4px;
+    display: block;
+    color: #1976d2;
+    text-align: left;
+}
+#chargeForm input,
+#chargeForm select {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    margin-bottom: 0;
+    background: #fafbfc;
+}
+#chargeForm input[type="number"] {
+    max-width: 120px;
+}
+#chargeForm > div {
+    display: flex;
+    flex-direction: column;
+}
+#chargeForm .full-row {
+    grid-column: 1 / span 2;
+}
+#chargeForm button[type="submit"] {
+    grid-column: 1 / span 2;
+    margin-top: 18px;
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 0;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+#chargeForm button[type="submit"]:hover {
+    background: #388e3c;
+}
+#chargeModal h3 {
+    text-align: center;
+    font-size: 1.5em;
+    margin-bottom: 18px;
+    color: #1976d2;
+}
+@media (max-width: 700px) {
+    #chargeForm {
+        grid-template-columns: 1fr;
+    }
+    #chargeForm .full-row {
+        grid-column: 1 / span 1;
+    }
+}

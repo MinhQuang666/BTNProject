@@ -52,6 +52,8 @@
                         <th>Nơi lấy Container</th>
                         <th>Nơi hạ Container</th>
                         <th>Chi phí phụ</th>
+                        <th>Công ty làm Hoá Đơn</th>
+                        <th>Hãng tàu</th>
                         <th id="actionHeader" style="display:none;">Hành động</th>
                     </tr>
                     <tr id="filterRow">
@@ -67,6 +69,8 @@
                         <th><input type="text" id="filter-pickup_location" style="width:100%"></th>
                         <th><input type="text" id="filter-dropoff_location" style="width:100%"></th>
                         <th><input type="text" id="filter-extra_fee" style="width:100%"></th>
+                        <th><input type="text" id="filter-invoice_company" style="width:100%" placeholder="Công ty làm Hoá Đơn"></th>
+                        <th><input type="text" id="filter-shipping_line" style="width:100%" placeholder="Hãng tàu"></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -77,9 +81,9 @@
         </div>
         <main id="main-container"></main>
         <!-- Bảng nhập Booking -->
-        <div id="draggableContainer" class="container" style="display: none;">
-            <h1>Nhập Thông Tin Booking</h1>
-            <form id="bookingForm" autocomplete="off">
+        <div id="draggableContainer" class="container" style="display: none; max-width: 520px; width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 2px 16px rgba(0,0,0,0.18); border-radius: 10px;">
+            <h1 style="font-size: 1.3rem;">Nhập Thông Tin Booking</h1>
+            <form id="bookingForm" autocomplete="off" style="max-height: 75vh; overflow-y: auto;">
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="pickupDate">Ngày lấy:</label>
@@ -141,6 +145,14 @@
                     <div class="form-group">
                         <label for="extraFee">Chi phí phụ:</label>
                         <input type="text" id="extraFee" name="extraFee" placeholder="Cược phí phụ" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="invoiceCompany">Công ty làm hoá đơn:</label>
+                        <input type="text" id="invoiceCompany" name="invoiceCompany" placeholder="Công ty làm hoá đơn">
+                    </div>
+                    <div class="form-group">
+                        <label for="shippingLine">Hãng tàu:</label>
+                        <input type="text" id="shippingLine" name="shippingLine" placeholder="Hãng tàu">
                     </div>
                 </div>
                 <div class="form-buttons">
@@ -217,6 +229,8 @@ function renderBookingList() {
             <td>${booking.pickup_location || ''}</td>
             <td>${booking.dropoff_location || ''}</td>
             <td>${booking.extra_fee || ''}</td>
+            <td>${booking.invoice_company || ''}</td>
+            <td>${booking.shipping_line || ''}</td>
             <td style="display:none"><button onclick="deleteBooking(this)">Xóa</button></td>
         `;
         tableBody.appendChild(newRow);

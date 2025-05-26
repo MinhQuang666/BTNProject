@@ -22,6 +22,12 @@ document.getElementById('bookingForm').addEventListener('submit', async function
         extra_fee: document.getElementById('extraFee').value || 0
     };
 
+    // Lấy thêm dữ liệu từ form
+    const invoiceCompany = document.getElementById('invoiceCompany').value.trim();
+    const shippingLine = document.getElementById('shippingLine').value.trim();
+    bookingData.invoice_company = invoiceCompany;
+    bookingData.shipping_line = shippingLine;
+
     // Validate container code format after trim
     if (!/^[A-Z]{4}[0-9]{7}$/.test(trimmedContainerCode)) {
         showToast('Mã số Container phải gồm 4 chữ cái in hoa + 7 số (VD: ABCD1234567)');
@@ -41,7 +47,8 @@ document.getElementById('bookingForm').addEventListener('submit', async function
         hideSpinner();
         if (response.ok) {
             showToast('Lưu booking thành công!', 'success');
-            addBookingToList(bookingData); // Thêm vào bảng giao diện
+            // Sau khi thêm thành công, luôn fetch lại danh sách booking từ backend
+            fetchBookings();
             // Lưu lại giá trị vừa chọn
             const pickupDateValue = document.getElementById('pickupDate').value;
             const companyValue = document.getElementById('company').value;
@@ -54,8 +61,12 @@ document.getElementById('bookingForm').addEventListener('submit', async function
             // Sau khi thêm, sửa, xóa booking thành công, gọi:
             localStorage.setItem('bookingListUpdated', Date.now().toString());
         } else {
-            const errorText = await response.text();
-            showToast('Lỗi: ' + errorText, 'error');
+            if (response.status === 409) {
+                showToast('Booking đã tồn tại. Không thể thêm trùng lặp.', 'error');
+            } else {
+                const errorText = await response.text();
+                showToast('Lỗi: ' + errorText, 'error');
+            }
             // Không reset form nếu lỗi
         }
     } catch (err) {
@@ -81,6 +92,8 @@ function addBookingToList(bookingData) {
         <td>${bookingData.pickup_location || ''}</td>
         <td>${bookingData.dropoff_location || ''}</td>
         <td>${bookingData.extra_fee || ''}</td>
+        <td>${bookingData.invoice_company || ''}</td>
+        <td>${bookingData.shipping_line || ''}</td>
         <td><button onclick="deleteBooking(this)">Xóa</button></td>
     `;
 
@@ -90,17 +103,30 @@ function addBookingToList(bookingData) {
 function deleteBooking(button) {
     if (!confirm('Bạn có chắc chắn muốn xóa booking này không?')) return;
     const row = button.parentElement.parentElement;
-    // Lấy booking_no từ cột tương ứng
-    const bookingNo = row.children[3].textContent;
-    // Gọi API backend để xóa booking
-    fetch(`http://localhost:3000/bookings/${encodeURIComponent(bookingNo)}`, {
-        method: 'DELETE'
+    // Lấy đủ thông tin định danh booking từ các cột
+    const booking = {
+        pickup_date: row.children[0].textContent,
+        company_name: row.children[1].textContent,
+        transporter_name: row.children[2].textContent,
+        booking_no: row.children[3].textContent,
+        container_code: row.children[4].textContent,
+        seal: row.children[5].textContent,
+        type: row.children[6].textContent === 'Nhập' ? 'import' : (row.children[6].textContent === 'Xuất' ? 'export' : row.children[6].textContent),
+        quantity: row.children[7].textContent,
+        size: row.children[8].textContent,
+        pickup_location: row.children[9].textContent,
+        dropoff_location: row.children[10].textContent,
+        extra_fee: row.children[11].textContent
+    };
+    fetch('http://localhost:3000/bookings', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(booking)
     })
     .then(response => {
         if (response.ok) {
             showToast('Đã xóa booking!', 'success');
             fetchBookings(); // Làm mới lại danh sách từ backend
-            // Sau khi thêm, sửa, xóa booking thành công, gọi:
             localStorage.setItem('bookingListUpdated', Date.now().toString());
         } else {
             response.text().then(text => showToast('Lỗi: ' + text, 'error'));
@@ -268,6 +294,8 @@ async function fetchBookings() {
                 <td>${booking.pickup_location || ''}</td>
                 <td>${booking.dropoff_location || ''}</td>
                 <td>${booking.extra_fee || ''}</td>
+                <td>${booking.invoice_company || ''}</td>
+                <td>${booking.shipping_line || ''}</td>
                 <td><button onclick="deleteBooking(this)">Xóa</button></td>
             `;
             tableBody.appendChild(newRow);
@@ -307,6 +335,9 @@ function renderBookingList() {
             <td>${booking.size || ''}</td>
             <td>${booking.pickup_location || ''}</td>
             <td>${booking.dropoff_location || ''}</td>
+            <td>${booking.extra_fee || ''}</td>
+            <td>${booking.invoice_company || ''}</td>
+            <td>${booking.shipping_line || ''}</td>
             <td><button onclick="deleteBooking(this)">Xóa</button></td>
         `;
         tableBody.appendChild(newRow);

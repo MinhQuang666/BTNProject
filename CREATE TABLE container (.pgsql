@@ -5,12 +5,15 @@ DROP TABLE IF EXISTS container_owners;
 DROP TABLE IF EXISTS locations;
 DROP TABLE IF EXISTS transporters;
 DROP TABLE IF EXISTS companies;
+DROP TABLE IF EXISTS transport_companies;
+DROP TABLE IF EXISTS booking_details;
 
 
 CREATE TABLE companies (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) 
 );
+
 
 CREATE TABLE transporters (
     id VARCHAR(50) PRIMARY KEY,
@@ -54,8 +57,10 @@ CREATE TABLE bookings (
     id SERIAL PRIMARY KEY,
     booking_no VARCHAR(50),
     pickup_date DATE NOT NULL,
-    company_name VARCHAR(100) NOT NULL,
+    company_name VARCHAR(100) NOT NULL, -- Công ty khách hàng
     transporter_name VARCHAR(70) NOT NULL,
+    invoice_company VARCHAR(100), -- Công ty làm hoá đơn (manual input)
+    shipping_line VARCHAR(100), -- Hãng tàu (manual input)
     container_code VARCHAR(20) NOT NULL,
     seal VARCHAR(50) NOT NULL,
     quantity INT NOT NULL,
@@ -67,11 +72,42 @@ CREATE TABLE bookings (
     CONSTRAINT fk_container_code FOREIGN KEY (container_code) REFERENCES containers(container_code)
 );
 
+CREATE TABLE booking_details (
+    id SERIAL PRIMARY KEY,
+    booking_no VARCHAR(50),
+    pickup_date DATE NOT NULL,
+    company_name VARCHAR(100) NOT NULL,
+    transporter_name VARCHAR(70) NOT NULL,
+    invoice_company VARCHAR(100), -- Công ty làm hoá đơn (copy từ bookings)
+    shipping_line VARCHAR(100), -- Hãng tàu (copy từ bookings)
+    container_code VARCHAR(20) NOT NULL,
+    quantity INT NOT NULL,
+    size VARCHAR(10) NOT NULL,
+    pickup_location VARCHAR(255),
+    dropoff_location VARCHAR(255),
+    type VARCHAR(20),
+    extra_fee VARCHAR(255),
+    -- Các trường bổ sung nghiệp vụ
+    thanh_ly VARCHAR(100),
+    phu_thu VARCHAR(100),
+    hoa_don VARCHAR(100),
+    ngay_hd DATE,
+    cai_mep VARCHAR(100),
+    phi_hun_trung NUMERIC(18,2),
+    kiem_hoa VARCHAR(100),
+    xin_so_cont VARCHAR(100),
+    qua_tai VARCHAR(100),
+    phi_van_chuyen NUMERIC(18,2),
+    vat_8 NUMERIC(18,2),
+    ghi_chu TEXT
+);
+
 -- Đảm bảo không có 2 booking nào trùng hoàn toàn mọi trường (trừ id)
 CREATE UNIQUE INDEX unique_booking_all_fields
 ON bookings (
     booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee
 );
+
 
 -- Xem dữ liệu mẫu
 SELECT * FROM companies;
@@ -81,4 +117,5 @@ SELECT * FROM container_owners;
 SELECT * FROM containers;
 SELECT * FROM container_transactions;
 SELECT * FROM bookings;
+SELECT * FROM booking_details;
 
