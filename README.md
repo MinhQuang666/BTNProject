@@ -20,7 +20,7 @@ Tôi cam kết sẽ tiếp tục nâng cấp, mở rộng dự án này theo nhu
 
 ## Hướng dẫn cài đặt/chạy thử
 1. Cài đặt Node.js
-2. Cài đặt package: `npm install` trong thư mục Backend
+2. Cài đặt package: `npm install` trong thư mục Backend 
 3. Chạy server: `node server.js`
 4. Mở các file HTML trong thư mục Frontend bằng trình duyệt
 

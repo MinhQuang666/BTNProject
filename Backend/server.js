@@ -637,8 +637,8 @@ app.post('/bookings', async (req, res) => {
         // Tự động thêm vào booking_details nếu chưa có
         try {
             await pool.query(
-                `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, charged)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, FALSE)
                 ON CONFLICT DO NOTHING`,
                 [booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee]
             );
@@ -715,12 +715,22 @@ app.get('/booking-details', async (req, res) => {
         let result, totalResult;
         if (search) {
             result = await pool.query(
-                `SELECT id, booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, thanh_ly, phu_thu, hoa_don, ngay_hd, cai_mep, phi_hun_trung, kiem_hoa, xin_so_cont, qua_tai, phi_van_chuyen, vat_8, ghi_chu FROM booking_details WHERE booking_no ILIKE $1 ORDER BY pickup_date DESC LIMIT $2 OFFSET $3`,
+                `SELECT id, booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, \
+                receiving_price, delivery_price, lifting_fee, lowering_fee, \
+                lifting_invoice, lifting_invoice_date, lifting_invoice_supplier, lowering_invoice, lowering_invoice_date, lowering_invoice_supplier, \
+                thanh_ly, phu_thu, hoa_don, ngay_hd, cai_mep, phi_hun_trung, kiem_hoa, xin_so_cont, qua_tai, phi_van_chuyen, vat_8, ghi_chu, charged \
+                FROM booking_details WHERE booking_no ILIKE $1 ORDER BY pickup_date DESC LIMIT $2 OFFSET $3`,
                 [`%${search}%`, limit, offset]
             );
             totalResult = await pool.query('SELECT COUNT(*) FROM booking_details WHERE booking_no ILIKE $1', [`%${search}%`]);
         } else {
-            result = await pool.query('SELECT id, booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, thanh_ly, phu_thu, hoa_don, ngay_hd, cai_mep, phi_hun_trung, kiem_hoa, xin_so_cont, qua_tai, phi_van_chuyen, vat_8, ghi_chu FROM booking_details ORDER BY pickup_date DESC LIMIT $1 OFFSET $2', [limit, offset]);
+            result = await pool.query(
+                `SELECT id, booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, \
+                receiving_price, delivery_price, lifting_fee, lowering_fee, \
+                lifting_invoice, lifting_invoice_date, lifting_invoice_supplier, lowering_invoice, lowering_invoice_date, lowering_invoice_supplier, \
+                thanh_ly, phu_thu, hoa_don, ngay_hd, cai_mep, phi_hun_trung, kiem_hoa, xin_so_cont, qua_tai, phi_van_chuyen, vat_8, ghi_chu, charged \
+                FROM booking_details ORDER BY pickup_date DESC LIMIT $1 OFFSET $2`, [limit, offset]
+            );
             totalResult = await pool.query('SELECT COUNT(*) FROM booking_details');
         }
         const total = parseInt(totalResult.rows[0].count, 10);
@@ -742,8 +752,6 @@ app.put('/booking-details/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const {
-            transport_company_name, // tên công ty nhà xe từ frontend
-            shipping_line,
             receiving_price,
             delivery_price,
             lifting_fee,
@@ -765,7 +773,8 @@ app.put('/booking-details/:id', async (req, res) => {
             qua_tai,
             phi_van_chuyen,
             vat_8,
-            ghi_chu
+            ghi_chu,
+            charged // <-- nhận từ frontend, true nếu submit tính phí
         } = req.body;
         // Debug log incoming data
         console.log('PUT /booking-details/:id', { id, body: req.body });
@@ -779,16 +788,8 @@ app.put('/booking-details/:id', async (req, res) => {
             if (!val || val === '') return null;
             return val;
         }
-        // Nếu transport_company_name bị bỏ trống, mặc định = company_name
-        let finalTransportCompanyName = transport_company_name;
-        if (!finalTransportCompanyName || finalTransportCompanyName.trim() === '') {
-            // Lấy company_name từ booking_details
-            const companyResult = await pool.query('SELECT company_name FROM booking_details WHERE id = $1', [id]);
-            finalTransportCompanyName = (companyResult.rows[0] && companyResult.rows[0].company_name) || '';
-        }
+        // Chỉ cập nhật charged nếu có trường này trong body (frontend gửi khi submit tính phí)
         const sanitized = {
-            transport_company_name: finalTransportCompanyName,
-            shipping_line,
             receiving_price: toNumberOrNull(receiving_price),
             delivery_price: toNumberOrNull(delivery_price),
             lifting_fee: toNumberOrNull(lifting_fee),
@@ -800,70 +801,74 @@ app.put('/booking-details/:id', async (req, res) => {
             lowering_invoice_date: toDateOrNull(lowering_invoice_date),
             lowering_invoice_supplier,
             thanh_ly,
-            phu_thu: toNumberOrNull( phu_thu ),
+            phu_thu: toNumberOrNull(phu_thu),
             hoa_don,
-            ngay_hd: toDateOrNull( ngay_hd ),
+            ngay_hd: toDateOrNull(ngay_hd),
             cai_mep,
-            phi_hun_trung: toNumberOrNull( phi_hun_trung ),
-            kiem_hoa: toNumberOrNull( kiem_hoa ),
+            phi_hun_trung: toNumberOrNull(phi_hun_trung),
+            kiem_hoa: toNumberOrNull(kiem_hoa),
             xin_so_cont,
-            qua_tai: toNumberOrNull( qua_tai ),
-            phi_van_chuyen: toNumberOrNull( phi_van_chuyen ),
-            vat_8: toNumberOrNull( vat_8 ),
-            ghi_chu
+            qua_tai: toNumberOrNull(qua_tai),
+            phi_van_chuyen: toNumberOrNull(phi_van_chuyen),
+            vat_8: toNumberOrNull(vat_8),
+            ghi_chu,
+            charged: charged === true // chỉ true nếu submit tính phí
         };
+        // Build dynamic SQL for charged
+        const updateFields = [
+            'receiving_price = $1',
+            'delivery_price = $2',
+            'lifting_fee = $3',
+            'lifting_invoice = $4',
+            'lifting_invoice_date = $5',
+            'lifting_invoice_supplier = $6',
+            'lowering_fee = $7',
+            'lowering_invoice = $8',
+            'lowering_invoice_date = $9',
+            'lowering_invoice_supplier = $10',
+            'thanh_ly = $11',
+            'phu_thu = $12',
+            'hoa_don = $13',
+            'ngay_hd = $14',
+            'cai_mep = $15',
+            'phi_hun_trung = $16',
+            'kiem_hoa = $17',
+            'xin_so_cont = $18',
+            'qua_tai = $19',
+            'phi_van_chuyen = $20',
+            'vat_8 = $21',
+            'ghi_chu = $22',
+            'charged = $23'
+        ];
+        const values = [
+            sanitized.receiving_price,
+            sanitized.delivery_price,
+            sanitized.lifting_fee,
+            sanitized.lifting_invoice,
+            sanitized.lifting_invoice_date,
+            sanitized.lifting_invoice_supplier,
+            sanitized.lowering_fee,
+            sanitized.lowering_invoice,
+            sanitized.lowering_invoice_date,
+            sanitized.lowering_invoice_supplier,
+            sanitized.thanh_ly,
+            sanitized.phu_thu,
+            sanitized.hoa_don,
+            sanitized.ngay_hd,
+            sanitized.cai_mep,
+            sanitized.phi_hun_trung,
+            sanitized.kiem_hoa,
+            sanitized.xin_so_cont,
+            sanitized.qua_tai,
+            sanitized.phi_van_chuyen,
+            sanitized.vat_8,
+            sanitized.ghi_chu,
+            sanitized.charged,
+            id
+        ];
         const result = await pool.query(
-            `UPDATE booking_details SET
-                shipping_line = $1,
-                receiving_price = $2,
-                delivery_price = $3,
-                lifting_fee = $4,
-                lifting_invoice = $5,
-                lifting_invoice_date = $6,
-                lifting_invoice_supplier = $7,
-                lowering_fee = $8,
-                lowering_invoice = $9,
-                lowering_invoice_date = $10,
-                lowering_invoice_supplier = $11,
-                thanh_ly = $12,
-                phu_thu = $13,
-                hoa_don = $14,
-                ngay_hd = $15,
-                cai_mep = $16,
-                phi_hun_trung = $17,
-                kiem_hoa = $18,
-                xin_so_cont = $19,
-                qua_tai = $20,
-                phi_van_chuyen = $21,
-                vat_8 = $22,
-                ghi_chu = $23
-            WHERE id = $24 RETURNING *`,
-            [
-                sanitized.shipping_line,
-                sanitized.receiving_price,
-                sanitized.delivery_price,
-                sanitized.lifting_fee,
-                sanitized.lifting_invoice,
-                sanitized.lifting_invoice_date,
-                sanitized.lifting_invoice_supplier,
-                sanitized.lowering_fee,
-                sanitized.lowering_invoice,
-                sanitized.lowering_invoice_date,
-                sanitized.lowering_invoice_supplier,
-                sanitized.thanh_ly,
-                sanitized.phu_thu,
-                sanitized.hoa_don,
-                sanitized.ngay_hd,
-                sanitized.cai_mep,
-                sanitized.phi_hun_trung,
-                sanitized.kiem_hoa,
-                sanitized.xin_so_cont,
-                sanitized.qua_tai,
-                sanitized.phi_van_chuyen,
-                sanitized.vat_8,
-                sanitized.ghi_chu,
-                id
-            ]
+            `UPDATE booking_details SET ${updateFields.join(', ')} WHERE id = $24 RETURNING *`,
+            values
         );
         if (result.rowCount === 0) {
             return res.status(404).send('Không tìm thấy booking_details.');

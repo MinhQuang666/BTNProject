@@ -356,8 +356,8 @@ input[type="text"], select {
 
 /* ContainerCharge page width adjustment */
 .container.container-charge {
-    max-width: 1200px;
-    margin: 30px auto;
+    max-width: 2000px;
+    margin: 10px auto;
     padding: 30px 30px 10px 30px;
 }
 

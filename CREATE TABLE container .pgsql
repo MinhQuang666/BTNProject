@@ -13,27 +13,19 @@ CREATE TABLE companies (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) 
 );
-
-
 CREATE TABLE transporters (
     id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(70)
 );
-
 CREATE TABLE locations (
     id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(255),
     image_url VARCHAR(255)
 );
-
 CREATE TABLE container_owners (
     owner_code CHAR(3) PRIMARY KEY CHECK (owner_code ~ '^[A-Z]{3}$'),
     name VARCHAR(255)
 );
-
-
-
-
 CREATE TABLE containers (
     id SERIAL PRIMARY KEY, -- ID tự động tăng
     container_code VARCHAR(20) NOT NULL UNIQUE CHECK (container_code ~ '^[A-Z]{4}[0-9]{7}$'), -- Mã container, đảm bảo duy nhất
@@ -41,7 +33,6 @@ CREATE TABLE containers (
     owner_code CHAR(3) REFERENCES container_owners(owner_code) -- Liên kết với bảng container_owners qua owner_code
 
 );
-
 CREATE TABLE container_transactions (
     id SERIAL PRIMARY KEY,
     container_id INT REFERENCES containers(id),
@@ -52,7 +43,6 @@ CREATE TABLE container_transactions (
     dropoff_location_id VARCHAR(50) REFERENCES locations(id),
     transaction_date DATE NOT NULL
 );
-
 CREATE TABLE bookings (
     id SERIAL PRIMARY KEY,
     booking_no VARCHAR(50),
@@ -71,7 +61,6 @@ CREATE TABLE bookings (
     extra_fee VARCHAR(255), -- Chi phí phụ (ghi chú)
     CONSTRAINT fk_container_code FOREIGN KEY (container_code) REFERENCES containers(container_code)
 );
-
 CREATE TABLE booking_details (
     id SERIAL PRIMARY KEY,
     booking_no VARCHAR(50),
@@ -99,17 +88,24 @@ CREATE TABLE booking_details (
     qua_tai VARCHAR(100),
     phi_van_chuyen NUMERIC(18,2),
     vat_8 NUMERIC(18,2),
-    ghi_chu TEXT
+    ghi_chu TEXT,
+    -- Các trường tính phí chi tiết
+    receiving_price NUMERIC(18,2) DEFAULT 0,
+    delivery_price NUMERIC(18,2) DEFAULT 0,
+    lifting_fee NUMERIC(18,2) DEFAULT 0,
+    lowering_fee NUMERIC(18,2) DEFAULT 0,
+    lifting_invoice VARCHAR(100),
+    lifting_invoice_date DATE,
+    lifting_invoice_supplier VARCHAR(100),
+    lowering_invoice VARCHAR(100),
+    lowering_invoice_date DATE,   
+    lowering_invoice_supplier VARCHAR(100),
+    charged BOOLEAN DEFAULT FALSE
 );
-
--- Đảm bảo không có 2 booking nào trùng hoàn toàn mọi trường (trừ id)
 CREATE UNIQUE INDEX unique_booking_all_fields
 ON bookings (
     booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee
 );
-
-
--- Xem dữ liệu mẫu
 SELECT * FROM companies;
 SELECT * FROM transporters;
 SELECT * FROM locations;
