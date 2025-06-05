@@ -54,7 +54,7 @@
                         <th>Chi phí phụ</th>
                         <th>Công ty làm Hoá Đơn</th>
                         <th>Hãng tàu</th>
-                        <th id="actionHeader" style="display:none;">Hành động</th>
+                        <th id="actionHeader">Hành động</th>
                     </tr>
                     <tr id="filterRow">
                         <th><input type="date" id="filter-pickup_date" style="width:100%"></th>
@@ -75,7 +75,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Dữ liệu sẽ được thêm vào đây -->
+                    <!-- Dữ liệu sẽ được thêm vào đây bằng JS, bao gồm nút Chuyển sang tính phí và Xóa -->
                 </tbody>
             </table>
         </div>
@@ -231,7 +231,7 @@ function renderBookingList() {
             <td>${booking.extra_fee || ''}</td>
             <td>${booking.invoice_company || ''}</td>
             <td>${booking.shipping_line || ''}</td>
-            <td style="display:none"><button onclick="deleteBooking(this)">Xóa</button></td>
+            <td><!-- Dữ liệu sẽ được thêm vào đây --></td>
         `;
         tableBody.appendChild(newRow);
     });

@@ -186,10 +186,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('Không thể lấy danh sách booking_details');
             const data = await response.json();
             allBookingDetails = data.bookingDetails || [];
+            updateSummaryPanel();
             renderBookingList();
         } catch (err) {
             console.error('Lỗi khi load booking_details:', err);
         }
+    }
+
+    // Cập nhật panel tóm tắt
+    function updateSummaryPanel() {
+        // Tổng Booking = tổng số dòng booking_details
+        document.getElementById('totalBookings').textContent = allBookingDetails.length;
+        // Chưa tính = số booking_details có charged == false
+        const notCharged = allBookingDetails.filter(b => !b.charged).length;
+        document.getElementById('totalContainers').textContent = notCharged;
+        // Đã tính phí = số booking_details có charged == true
+        const charged = allBookingDetails.filter(b => b.charged).length;
+        document.getElementById('totalQuantity').textContent = charged;
     }
 
     // Lấy danh sách công ty nhà xe cho select
@@ -362,9 +375,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayVal = '<span style="color:#aaa;">(trống)</span>';
             } else if (numericFields.includes(key)) {
                 if (displayVal === undefined || displayVal === null || displayVal === '') {
-                    displayVal = '<span style="color:#aaa;">0.00</span>';
+                    displayVal = '<span style="color:#aaa;">0 VNĐ</span>';
                 } else if (!isNaN(displayVal)) {
-                    displayVal = Number(displayVal).toFixed(2);
+                    displayVal = formatMoneyDisplay(displayVal);
                 }
             } else {
                 if (displayVal === undefined || displayVal === null || displayVal === '') {
@@ -567,9 +580,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayVal = '<span style="color:#aaa;">(trống)</span>';
             } else if (numericFields.includes(key)) {
                 if (displayVal === undefined || displayVal === null || displayVal === '') {
-                    displayVal = '<span style="color:#aaa;">0.00</span>';
+                    displayVal = '<span style="color:#aaa;">0 VNĐ</span>';
                 } else if (!isNaN(displayVal)) {
-                    displayVal = Number(displayVal).toFixed(2);
+                    displayVal = formatMoneyDisplay(displayVal);
                 }
             } else {
                 if (displayVal === undefined || displayVal === null || displayVal === '') {
@@ -628,8 +641,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const numericFields = [
                 'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
             ];
+            const dateFields = [
+                'lifting_invoice_date','lowering_invoice_date','ngay_hd'
+            ];
             if (booking[field] !== undefined && booking[field] !== null && booking[field] !== '') {
-                input.value = booking[field];
+                // If date field, format to yyyy-MM-dd for input type="date"
+                if (dateFields.includes(field)) {
+                    let dateVal = booking[field];
+                    if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
+                        // If already yyyy-MM-dd, use as is
+                        input.value = dateVal;
+                    } else {
+                        // Parse and adjust for timezone offset
+                        const d = new Date(dateVal);
+                        if (!isNaN(d)) {
+                            const tzOffset = d.getTimezoneOffset() * 60000;
+                            const localISO = new Date(d.getTime() - tzOffset).toISOString().slice(0,10);
+                            input.value = localISO;
+                        } else {
+                            input.value = '';
+                        }
+                    }
+                } else {
+                    input.value = booking[field];
+                }
             } else if (numericFields.includes(field)) {
                 input.value = 0;
             } else {
@@ -648,4 +683,114 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('chargeModal').onclick = function(e) {
         if (e.target === this) closeChargeModal();
     };
+
+    // Utility: format number with thousand separators and VNĐ
+    // (see above for new implementation)
+    function formatMoneyInput(value) {
+        if (value === '' || value === null || value === undefined) return '';
+        let num = value.toString().replace(/[^\d]/g, '');
+        if (!num) return '';
+        num = parseInt(num, 10);
+        if (isNaN(num)) return '';
+        return num.toLocaleString('vi-VN') + ' VNĐ';
+    }
+
+    // Utility: get raw number from formatted string
+    function parseMoneyInput(value) {
+        if (!value) return 0;
+        return parseInt(value.toString().replace(/[^\d]/g, ''), 10) || 0;
+    }
+
+    // Attach formatting to money fields in charge form
+    function setupMoneyInputFormatting() {
+        const moneyFields = [
+            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
+        ];
+        moneyFields.forEach(field => {
+            const input = document.getElementById(field);
+            if (!input) return;
+            // Format on input
+            input.addEventListener('input', function(e) {
+                const caret = input.selectionStart;
+                const raw = input.value.replace(/[^\d]/g, '');
+                if (raw === '') {
+                    input.value = '';
+                    return;
+                }
+                input.value = formatMoneyInput(raw);
+                // Try to keep caret at end
+                input.setSelectionRange(input.value.length, input.value.length);
+            });
+            // On focus, show only number
+            input.addEventListener('focus', function() {
+                const raw = input.value.replace(/[^\d]/g, '');
+                input.value = raw;
+            });
+            // On blur, format
+            input.addEventListener('blur', function() {
+                const raw = input.value.replace(/[^\d]/g, '');
+                input.value = formatMoneyInput(raw);
+            });
+            // Initial format if value exists
+            if (input.value && !isNaN(input.value)) {
+                input.value = formatMoneyInput(input.value);
+            }
+        });
+    }
+
+    // Call setup after DOMContentLoaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupMoneyInputFormatting);
+    } else {
+        setupMoneyInputFormatting();
+    }
+
+    // Patch submitChargeForm to send raw values
+    const originalSubmitChargeForm = submitChargeForm;
+    async function patchedSubmitChargeForm(e) {
+        e.preventDefault();
+        const id = this.getAttribute('data-id');
+        const booking = allBookingDetails.find(b => b.id == id);
+        const formData = {};
+        formData.transport_company_name = booking ? (booking.transport_companies || booking.transporter_name || '') : '';
+        formData.shipping_line = booking ? (booking.shipping_line || '') : '';
+        [
+            'receiving_price','delivery_price','lifting_fee','lifting_invoice','lifting_invoice_date','lifting_invoice_supplier','lowering_fee','lowering_invoice','lowering_invoice_date','lowering_invoice_supplier',
+            'thanh_ly','phu_thu','hoa_don','ngay_hd','cai_mep','phi_hun_trung','kiem_hoa','xin_so_cont','qua_tai','phi_van_chuyen','vat_8','ghi_chu'
+        ].forEach(field => {
+            const input = document.getElementById(field);
+            if (!input) return;
+            if ([
+                'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
+            ].includes(field)) {
+                formData[field] = parseMoneyInput(input.value);
+            } else {
+                formData[field] = input.value;
+            }
+        });
+        formData.charged = true;
+        try {
+            const res = await fetch(`http://localhost:3000/booking-details/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            if (!res.ok) throw new Error('Lỗi khi cập nhật thông tin tính phí');
+            closeChargeModal();
+            fetchBookingDetails();
+        } catch (err) {
+            alert('Lỗi khi lưu thông tin tính phí!');
+        }
+    }
+    document.getElementById('chargeForm').onsubmit = patchedSubmitChargeForm;
+
+    // Utility: format number with thousand separators and VNĐ
+    function formatMoneyDisplay(value) {
+        if (value === '' || value === null || value === undefined) return '';
+        let num = value.toString().replace(/[^\d]/g, '');
+        if (!num) return '';
+        num = parseInt(num, 10);
+        if (isNaN(num)) return '';
+        return num.toLocaleString('vi-VN') + ' VNĐ';
+    }
 });

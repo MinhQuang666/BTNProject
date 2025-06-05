@@ -76,30 +76,6 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     }
 });
 
-function addBookingToList(bookingData) {
-    const tableBody = document.querySelector('#bookingList tbody');
-    const newRow = document.createElement('tr');
-    newRow.innerHTML = `
-        <td>${formatDate(bookingData.pickup_date) || ''}</td>
-        <td>${bookingData.company_name || ''}</td>
-        <td>${bookingData.transporter_name || ''}</td>
-        <td>${bookingData.booking_no || ''}</td>
-        <td>${bookingData.container_code || ''}</td>
-        <td>${bookingData.seal || ''}</td>
-        <td>${bookingData.type || ''}</td>
-        <td>${bookingData.quantity || ''}</td>
-        <td>${bookingData.size || ''}</td>
-        <td>${bookingData.pickup_location || ''}</td>
-        <td>${bookingData.dropoff_location || ''}</td>
-        <td>${bookingData.extra_fee || ''}</td>
-        <td>${bookingData.invoice_company || ''}</td>
-        <td>${bookingData.shipping_line || ''}</td>
-        <td><button onclick="deleteBooking(this)">Xóa</button></td>
-    `;
-
-    tableBody.appendChild(newRow);
-}
-
 function deleteBooking(button) {
     if (!confirm('Bạn có chắc chắn muốn xóa booking này không?')) return;
     const row = button.parentElement.parentElement;
@@ -277,29 +253,7 @@ async function fetchBookings() {
         const data = await response.json();
         const bookings = data.bookings || [];
         console.log('bookings:', bookings);
-        const tableBody = document.querySelector('#bookingList tbody');
-        tableBody.innerHTML = '';
-        bookings.forEach(booking => {
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${formatDate(booking.pickup_date) || ''}</td>
-                <td>${booking.company_name || ''}</td>
-                <td>${booking.transporter_name || ''}</td>
-                <td>${booking.booking_no || ''}</td>
-                <td>${booking.container_code || ''}</td>
-                <td>${booking.seal || ''}</td>
-                <td>${booking.type || ''}</td>
-                <td>${booking.quantity || ''}</td>
-                <td>${booking.size || ''}</td>
-                <td>${booking.pickup_location || ''}</td>
-                <td>${booking.dropoff_location || ''}</td>
-                <td>${booking.extra_fee || ''}</td>
-                <td>${booking.invoice_company || ''}</td>
-                <td>${booking.shipping_line || ''}</td>
-                <td><button onclick="deleteBooking(this)">Xóa</button></td>
-            `;
-            tableBody.appendChild(newRow);
-        });
+        setBookingsData(bookings); // Chỉ set dữ liệu, không render trực tiếp
     } catch (err) {
         console.error('Lỗi khi load danh sách booking:', err);
     }
@@ -330,7 +284,7 @@ function renderBookingList() {
             <td>${booking.booking_no || ''}</td>
             <td>${booking.container_code || ''}</td>
             <td>${booking.seal || ''}</td>
-            <td>${booking.type || ''}</td>
+            <td>${booking.type === 'import' ? 'Nhập' : booking.type === 'export' ? 'Xuất' : (booking.type || '')}</td>
             <td>${booking.quantity || ''}</td>
             <td>${booking.size || ''}</td>
             <td>${booking.pickup_location || ''}</td>
@@ -338,9 +292,55 @@ function renderBookingList() {
             <td>${booking.extra_fee || ''}</td>
             <td>${booking.invoice_company || ''}</td>
             <td>${booking.shipping_line || ''}</td>
-            <td><button onclick="deleteBooking(this)">Xóa</button></td>
+            <td>
+                <button class="send-to-detail-btn">Chuyển sang tính phí</button>
+                <button onclick="deleteBooking(this)">Xóa</button>
+            </td>
         `;
         tableBody.appendChild(newRow);
+        // Gán sự kiện cho nút chuyển sang tính phí
+        const sendBtn = newRow.querySelector('.send-to-detail-btn');
+        // Đảm bảo pickup_date gửi về backend là đúng ngày (không lệch ngày)
+        // Hiển thị ngày lấy rõ ràng trên nút chuyển
+        const pickupDate = booking.pickup_date ? (typeof booking.pickup_date === 'string' && booking.pickup_date.length > 10 ? booking.pickup_date.slice(0, 10) : booking.pickup_date) : '';
+        sendBtn.textContent = `Chuyển sang tính phí`;
+        sendBtn.title = `Ngày lấy: ${pickupDate}`;
+        sendBtn.addEventListener('click', async function() {
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Đang chuyển...';
+            try {
+                const res = await fetch('http://localhost:3000/booking-details/from-booking', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_no: booking.booking_no, pickup_date: pickupDate })
+                });
+                if (res.ok) {
+                    sendBtn.textContent = 'Đã chuyển';
+                    sendBtn.style.background = '#4CAF50';
+                    sendBtn.style.color = '#fff';
+                    sendBtn.disabled = true;
+                    showToast('Đã chuyển sang tính phí!', 'success');
+                } else {
+                    const msg = await res.text();
+                    sendBtn.textContent = `Chuyển sang tính phí (${pickupDate})`;
+                    sendBtn.disabled = false;
+                    showToast('Lỗi: ' + msg, 'error');
+                }
+            } catch (err) {
+                sendBtn.textContent = `Chuyển sang tính phí (${pickupDate})`;
+                sendBtn.disabled = false;
+                showToast('Lỗi kết nối server!', 'error');
+            }
+        });
+        // Thêm nút Update bên cạnh nút Chuyển sang tính phí
+        const updateBtn = document.createElement('button');
+        updateBtn.textContent = 'Cập nhật';
+        updateBtn.className = 'update-booking-btn';
+        updateBtn.style.marginRight = '6px';
+        updateBtn.addEventListener('click', function() {
+            showEditBookingModal(booking);
+        });
+        sendBtn.parentElement.insertBefore(updateBtn, sendBtn);
     });
     renderBookingPagination();
 }
@@ -462,3 +462,87 @@ window.addEventListener('storage', function(event) {
         if (typeof fetchBookings === 'function') fetchBookings();
     }
 });
+
+// Popup cập nhật booking
+function showEditBookingModal(booking) {
+    let modal = document.getElementById('editBookingModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'editBookingModal';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.background = 'rgba(0,0,0,0.3)';
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.style.zIndex = 99999;
+        modal.innerHTML = `
+        <div style="background:#fff;padding:24px 20px 16px 20px;border-radius:10px;min-width:320px;max-width:95vw;max-height:90vh;overflow:auto;box-shadow:0 2px 16px rgba(0,0,0,0.18);">
+            <h2 style="margin-top:0;font-size:1.1rem;">Cập nhật thông tin booking</h2>
+            <form id="editBookingForm">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <label>Ngày lấy: <input type="date" name="pickup_date" value="${booking.pickup_date ? formatDate(booking.pickup_date) : ''}" required></label>
+                    <label>Công ty: <input type="text" name="company_name" value="${booking.company_name||''}" required></label>
+                    <label>Nhà xe: <input type="text" name="transporter_name" value="${booking.transporter_name||''}" required></label>
+                    <label>BK No: <input type="text" name="booking_no" value="${booking.booking_no||''}" required></label>
+                    <label>Mã Container: <input type="text" name="container_code" value="${booking.container_code||''}" required></label>
+                    <label>Seal: <input type="text" name="seal" value="${booking.seal||''}" required></label>
+                    <label>Số lượng: <input type="number" name="quantity" value="${booking.quantity||1}" required></label>
+                    <label>Kích cỡ: <input type="text" name="size" value="${booking.size||''}" required></label>
+                    <label>Nơi lấy: <input type="text" name="pickup_location" value="${booking.pickup_location||''}"></label>
+                    <label>Nơi hạ: <input type="text" name="dropoff_location" value="${booking.dropoff_location||''}"></label>
+                    <label>Loại hình:
+  <select name="type" required>
+    <option value="export" ${booking.type === 'export' ? 'selected' : ''}>Xuất</option>
+    <option value="import" ${booking.type === 'import' ? 'selected' : ''}>Nhập</option>
+  </select>
+</label>
+                    <label>Chi phí phụ: <input type="text" name="extra_fee" value="${booking.extra_fee||''}"></label>
+                    <label>Công ty HĐ: <input type="text" name="invoice_company" value="${booking.invoice_company||''}"></label>
+                    <label>Hãng tàu: <input type="text" name="shipping_line" value="${booking.shipping_line||''}"></label>
+                </div>
+                <div style="margin-top:16px;text-align:right;">
+                    <button type="submit" class="btn btn-success">Lưu cập nhật</button>
+                    <button type="button" id="cancelEditBookingBtn" class="btn btn-cancel" style="background:red;color:#fff;margin-left:8px;">Hủy</button>
+                </div>
+            </form>
+        </div>`;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    modal.querySelector('#cancelEditBookingBtn').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.querySelector('#editBookingForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = {};
+        for (let [k, v] of formData.entries()) data[k] = v;
+        // Validate mã container
+        if (!/^[A-Z]{4}[0-9]{7}$/.test(data.container_code)) {
+            showToast('Mã số Container phải gồm 4 chữ cái in hoa + 7 số (VD: ABCD1234567)', 'error');
+            return;
+        }
+        // Gửi API cập nhật booking (PUT)
+        try {
+            const res = await fetch(`http://localhost:3000/bookings/${encodeURIComponent(data.booking_no)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                showToast('Đã cập nhật booking!', 'success');
+                modal.style.display = 'none';
+                fetchBookings();
+            } else {
+                const msg = await res.text();
+                showToast('Lỗi: ' + msg, 'error');
+            }
+        } catch (err) {
+            showToast('Lỗi kết nối server!', 'error');
+        }
+    };
+}

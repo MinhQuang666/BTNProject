@@ -6,6 +6,62 @@
     <title>Tính phí Container</title>
     <link rel="stylesheet" href="../employerHome.css">
     <script src="ContainerCharge.js" defer></script>
+    <style>
+        /* Professional summary panel styles */
+        .summary-panel {
+            display: flex;
+            gap: 32px;
+            justify-content: flex-start;
+            align-items: stretch;
+            margin: 24px 0 32px 0;
+            flex-wrap: wrap;
+        }
+        .summary-item {
+            background: linear-gradient(135deg, #f8fafc 60%, #e3f0ff 100%);
+            border-radius: 16px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.07);
+            padding: 24px 32px 20px 32px;
+            min-width: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            position: relative;
+            transition: transform 0.18s cubic-bezier(.4,2,.6,1), box-shadow 0.18s;
+            cursor: pointer;
+        }
+        .summary-item:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 6px 24px 0 rgba(33,150,243,0.13);
+            background: linear-gradient(135deg, #e3f0ff 60%, #f8fafc 100%);
+        }
+        .summary-label {
+            font-size: 1.08rem;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .summary-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-top: 2px;
+            margin-bottom: 0;
+            color: #2196F3;
+            transition: color 0.2s;
+        }
+        .summary-blue { color: #2196F3; }
+        .summary-green { color: #43a047; }
+        .summary-orange { color: #ff9800; }
+        .summary-icon {
+            font-size: 1.5rem;
+            margin-right: 6px;
+            vertical-align: middle;
+            opacity: 0.85;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -22,16 +78,16 @@
         <!-- Summary Panel -->
         <div id="summaryPanel" class="summary-panel">
             <div class="summary-item">
-                <div class="summary-label">Tổng Booking</div>
+                <div class="summary-label"><span class="summary-icon">📦</span>Tổng Booking</div>
                 <div id="totalBookings" class="summary-value summary-blue">0</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">Tổng Container</div>
-                <div id="totalContainers" class="summary-value summary-green">0</div>
+                <div class="summary-label"><span class="summary-icon">⏳</span>Chưa tính</div>
+                <div id="totalContainers" class="summary-value summary-orange">0</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">Tổng Số lượng</div>
-                <div id="totalQuantity" class="summary-value summary-orange">0</div>
+                <div class="summary-label"><span class="summary-icon">✅</span>Đã tính phí</div>
+                <div id="totalQuantity" class="summary-value summary-green">0</div>
             </div>
         </div>
         <div class="booking-list-panel">
@@ -95,10 +151,10 @@
                 </div>
                 <div style="flex:1; min-width:0;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px;"> 
-                        <div style="display:flex; align-items:center;"><label style="flex:1;">Giá nhận:</label><input type="number" name="receiving_price" id="receiving_price" style="flex:1; margin-left:8px;" value="0"/><span style="margin-left:4px;"></span></div>
-                        <div style="display:flex; align-items:center;"><label style="flex:1;">Giá giao ngoài xe:</label><input type="number" name="delivery_price" id="delivery_price" style="flex:1; margin-left:8px;" value="0"/><span style="margin-left:4px;"></span></div>
-                        <div style="display:flex; align-items:center;"><label style="flex:1;">Phí nâng:</label><input type="number" name="lifting_fee" id="lifting_fee" style="flex:1; margin-left:8px;" value="0"/><span style="margin-left:4px;"></span></div>
-                        <div style="display:flex; align-items:center;"><label style="flex:1;">Phí hạ:</label><input type="number" name="lowering_fee" id="lowering_fee" style="flex:1; margin-left:8px;" value="0"/><span style="margin-left:4px;"></span></div>
+                        <div style="display:flex; align-items:center;"><label style="flex:1;">Giá nhận:</label><input type="text" name="receiving_price" id="receiving_price" style="flex:1; margin-left:8px;" value="0"/><span style="margin-left:4px;"></span></div>
+                        <div style="display:flex; align-items:center;"><label style="flex:1;">Giá giao ngoài xe:</label><input type="text" name="delivery_price" id="delivery_price" style="flex:1; margin-left:8px;" value="0"/><span style="margin-left:4px;"></span></div>
+                        <div style="display:flex; align-items:center;"><label style="flex:1;">Phí nâng:</label><input type="text" name="lifting_fee" id="lifting_fee" style="flex:1; margin-left:8px;" value="0"/><span style="margin-left:4px;"></span></div>
+                        <div style="display:flex; align-items:center;"><label style="flex:1;">Phí hạ:</label><input type="text" name="lowering_fee" id="lowering_fee" style="flex:1; margin-left:8px;" value="0"/><span style="margin-left:4px;"></span></div>
                         <div style="display:flex; align-items:center;"><label style="flex:1;">Hóa đơn phí nâng:</label><input type="text" name="lifting_invoice" id="lifting_invoice" style="flex:1; margin-left:8px;"/></div>
                         <div style="display:flex; align-items:center;"><label style="flex:1;">Hóa đơn phí hạ:</label><input type="text" name="lowering_invoice" id="lowering_invoice" style="flex:1; margin-left:8px;"/></div>
                         <div style="display:flex; align-items:center;"><label style="flex:1;">Ngày hóa đơn phí nâng:</label><input type="date" name="lifting_invoice_date" id="lifting_invoice_date" style="flex:1; margin-left:8px;"/></div>
@@ -106,16 +162,16 @@
                         <div style="display:flex; align-items:center;"><label style="flex:1;">Nhà cung cấp hóa đơn phí nâng:</label><input type="text" name="lifting_invoice_supplier" id="lifting_invoice_supplier" style="flex:1; margin-left:8px;"/></div>
                         <div style="display:flex; align-items:center;"><label style="flex:1;">Nhà cung cấp hóa đơn phí hạ:</label><input type="text" name="lowering_invoice_supplier" id="lowering_invoice_supplier" style="flex:1; margin-left:8px;"/></div>
                         <div style="display:flex; align-items:center;"><label style="flex:1;">THANH LÝ:</label><input type="text" name="thanh_ly" id="thanh_ly" style="flex:1; margin-left:8px;"/></div>
-                        <div style="display:flex; align-items:center;"><label style="flex:1;">PHỤ THU:</label><input type="number" name="phu_thu" id="phu_thu" style="flex:1; margin-left:8px;" value="0"/></div>
+                        <div style="display:flex; align-items:center;"><label style="flex:1;">PHỤ THU:</label><input type="text" name="phu_thu" id="phu_thu" style="flex:1; margin-left:8px;" value="0"/></div>
                         <div style="display:flex; align-items:center;"><label style="flex:1;">HÓA ĐƠN:</label><input type="text" name="hoa_don" id="hoa_don" style="flex:1; margin-left:8px;"/></div>
                         <div style="display:flex; align-items:center;"><label style="flex:1;">NGÀY HD:</label><input type="date" name="ngay_hd" id="ngay_hd" style="flex:1; margin-left:8px;"/></div>
                         <div style="display:flex; align-items:center;"><label style="flex:1;">CÁI MÉP:</label><input type="text" name="cai_mep" id="cai_mep" style="flex:1; margin-left:8px;"/></div>
-                        <div style="display:flex; align-items:center;"><label style="flex:1;">PHÍ HUN TRÙNG:</label><input type="number" name="phi_hun_trung" id="phi_hun_trung" style="flex:1; margin-left:8px;" value="0"/></div>
-                        <div style="display:flex; align-items:center;"><label style="flex:1;">KIỂM HÓA:</label><input type="number" name="kiem_hoa" id="kiem_hoa" style="flex:1; margin-left:8px;" value="0"/></div>
+                        <div style="display:flex; align-items:center;"><label style="flex:1;">PHÍ HUN TRÙNG:</label><input type="text" name="phi_hun_trung" id="phi_hun_trung" style="flex:1; margin-left:8px;" value="0"/></div>
+                        <div style="display:flex; align-items:center;"><label style="flex:1;">KIỂM HÓA:</label><input type="text" name="kiem_hoa" id="kiem_hoa" style="flex:1; margin-left:8px;" value="0"/></div>
                         <div style="display:flex; align-items:center;"><label style="flex:1;">XIN SỐ CONT:</label><input type="text" name="xin_so_cont" id="xin_so_cont" style="flex:1; margin-left:8px;"/></div>
-                        <div style="display:flex; align-items:center;"><label style="flex:1;">QUÁ TẢI:</label><input type="number" name="qua_tai" id="qua_tai" style="flex:1; margin-left:8px;" value="0"/></div>
-                        <div style="display:flex; align-items:center;"><label style="flex:1;">PHÍ VẬN CHUYỂN:</label><input type="number" name="phi_van_chuyen" id="phi_van_chuyen" style="flex:1; margin-left:8px;" value="0"/></div>
-                        <div style="display:flex; align-items:center;"><label style="flex:1;">VAT (8%):</label><input type="number" name="vat_8" id="vat_8" style="flex:1; margin-left:8px;" value="0"/></div>
+                        <div style="display:flex; align-items:center;"><label style="flex:1;">QUÁ TẢI:</label><input type="text" name="qua_tai" id="qua_tai" style="flex:1; margin-left:8px;" value="0"/></div>
+                        <div style="display:flex; align-items:center;"><label style="flex:1;">PHÍ VẬN CHUYỂN:</label><input type="text" name="phi_van_chuyen" id="phi_van_chuyen" style="flex:1; margin-left:8px;" value="0"/></div>
+                        <div style="display:flex; align-items:center;"><label style="flex:1;">VAT (8%):</label><input type="text" name="vat_8" id="vat_8" style="flex:1; margin-left:8px;" value="0"/></div>
                         <div style="display:flex; align-items:center;"><label style="flex:1;">GHI CHÚ:</label><input type="text" name="ghi_chu" id="ghi_chu" style="flex:1; margin-left:8px;"/></div>
                     </div>
                 </div>

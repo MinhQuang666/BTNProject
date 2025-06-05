@@ -634,17 +634,6 @@ app.post('/bookings', async (req, res) => {
             'INSERT INTO bookings (booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee, invoice_company, shipping_line) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
             [booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee, invoice_company, shipping_line]
         );
-        // Tự động thêm vào booking_details nếu chưa có
-        try {
-            await pool.query(
-                `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, charged)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, FALSE)
-                ON CONFLICT DO NOTHING`,
-                [booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee]
-            );
-        } catch (err) {
-            console.error('Error syncing to booking_details:', err);
-        }
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Error adding booking:', err);
@@ -655,11 +644,13 @@ app.post('/bookings', async (req, res) => {
 // Sửa booking
 app.put('/bookings/:booking_no', async (req, res) => {
     const { booking_no } = req.params;
-    const { pickup_date, company_id, transporter_id, container_code, seal, quantity, size, pickup_location, dropoff_location } = req.body;
+    const {
+        pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, invoice_company, shipping_line, type, extra_fee
+    } = req.body;
     try {
         const result = await pool.query(
-            'UPDATE bookings SET pickup_date=$1, company_id=$2, transporter_id=$3, container_code=$4, seal=$5, quantity=$6, size=$7, pickup_location=$8, dropoff_location=$9 WHERE booking_no=$10 RETURNING *',
-            [pickup_date, company_id, transporter_id, container_code, seal, quantity, size, pickup_location, dropoff_location, booking_no]
+            `UPDATE bookings SET pickup_date=$1, company_name=$2, transporter_name=$3, container_code=$4, seal=$5, quantity=$6, size=$7, pickup_location=$8, dropoff_location=$9, invoice_company=$10, shipping_line=$11, type=$12, extra_fee=$13 WHERE booking_no=$14 RETURNING *`,
+            [pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, invoice_company, shipping_line, type, extra_fee, booking_no]
         );
         if (result.rowCount === 0) {
             return res.status(404).send('Không tìm thấy booking.');
@@ -902,6 +893,39 @@ app.get('/transport_companies', async (req, res) => {
         res.json({ companies: [] });
     } catch (err) {
         res.json({ companies: [] });
+    }
+});
+
+// API chuyển booking sang booking_details (theo booking_no và pickup_date)
+app.post('/booking-details/from-booking', async (req, res) => {
+    console.log('POST /booking-details/from-booking', req.body); // Thêm log để debug
+    const { booking_no, pickup_date } = req.body;
+    if (!booking_no || !pickup_date) {
+        return res.status(400).send('Thiếu thông tin booking_no hoặc pickup_date.');
+    }
+    try {
+        // Lấy thông tin booking chỉ theo booking_no (bỏ kiểm tra pickup_date)
+        const result = await pool.query('SELECT * FROM bookings WHERE booking_no = $1', [booking_no]);
+        if (result.rows.length === 0) {
+            return res.status(404).send('Không tìm thấy booking.');
+        }
+        // Nếu có nhiều booking trùng booking_no, lấy bản gần nhất (hoặc bản đầu tiên)
+        const b = result.rows[0];
+        // Kiểm tra đã có trong booking_details chưa (theo booking_no và pickup_date của bản lấy ra)
+        const exists = await pool.query('SELECT * FROM booking_details WHERE booking_no = $1 AND pickup_date = $2', [b.booking_no, b.pickup_date]);
+        if (exists.rows.length > 0) {
+            return res.status(409).send('Booking đã tồn tại trong bảng booking_details.');
+        }
+        // Thêm vào booking_details
+        await pool.query(
+            `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, charged)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, FALSE)` ,
+            [b.booking_no, b.pickup_date, b.company_name, b.transporter_name, b.invoice_company, b.shipping_line, b.container_code, b.quantity, b.size, b.pickup_location, b.dropoff_location, b.type, b.extra_fee]
+        );
+        res.status(201).send('Đã chuyển sang bảng booking_details.');
+    } catch (err) {
+        console.error('Error chuyển booking sang booking_details:', err);
+        res.status(500).send('Lỗi khi chuyển booking sang booking_details.');
     }
 });
 
