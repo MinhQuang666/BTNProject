@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Xuất Excel Xác Nhận</title>
+    <link rel="stylesheet" href="../employerHome.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Xuất Excel Xác Nhận</h1>
+        <nav class="navbar">
+            <ul>
+                <li><a href="/Frontend/employerHome/Home/employerHome.html">Trang chủ</a></li>
+                <li><a href="/Frontend/employerHome/Booking/booking.html">Nhập Booking</a></li>
+                <li><a href="/Frontend/employerHome/ContainerCharge/ContainerCharge.html">Tính phí Container</a></li>
+                <li><a href="/Frontend/employerHome/Excel/exportExcel.html" class="active">Xác nhận & Xuất Excel</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <div class="export-container">
+            <div class="export-title">Xuất Excel bảng Xác Nhận</div>
+            <button class="export-btn" id="exportExcelBtn">Xuất Excel</button>
+            <div class="export-status" id="exportStatus"></div>
+        </div>
+    </main>
+    <script>
+    document.getElementById('exportExcelBtn').onclick = async function() {
+        const status = document.getElementById('exportStatus');
+        status.textContent = 'Đang lấy dữ liệu...';
+        try {
+            const res = await fetch('http://localhost:3000/xac-nhan/all');
+            if (!res.ok) throw new Error('Không lấy được dữ liệu từ server');
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length === 0) {
+                status.textContent = 'Không có dữ liệu để xuất.';
+                return;
+            }
+            // Chuyển dữ liệu thành worksheet
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'xac_nhan');
+            XLSX.writeFile(wb, 'xac_nhan.xlsx');
+            status.textContent = 'Xuất Excel thành công!';
+        } catch (e) {
+            status.textContent = 'Lỗi: ' + e.message;
+        }
+    };
+    </script>
+</body>
+</html>

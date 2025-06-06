@@ -363,9 +363,9 @@ document.addEventListener('DOMContentLoaded', function() {
             ['id', 'ID']
         ];
         let html = '<table style="width:100%;border-collapse:collapse;">';
-        // Xác định các trường số để hiển thị 0.00, còn lại là text hiển thị (trống)
+        // Xác định các trường số để hiển thị VNĐ (chỉ các trường tiền, không bao gồm quantity, size)
         const numericFields = [
-            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8','quantity','size','extra_fee'
+            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8','extra_fee'
         ];
         fieldLabels.forEach(([key, label]) => {
             let val = booking[key];
@@ -568,9 +568,9 @@ document.addEventListener('DOMContentLoaded', function() {
             ['id', 'ID']
         ];
         let html = '<table style="width:100%;border-collapse:collapse;">';
-        // Xác định các trường số để hiển thị 0.00, còn lại là text hiển thị (trống)
+        // Xác định các trường số để hiển thị VNĐ (chỉ các trường tiền, không bao gồm quantity, size)
         const numericFields = [
-            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8','quantity','size','extra_fee'
+            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8','extra_fee'
         ];
         fieldLabels.forEach(([key, label]) => {
             let val = booking[key];

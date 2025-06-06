@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS transporters;
 DROP TABLE IF EXISTS companies;
 DROP TABLE IF EXISTS transport_companies;
 DROP TABLE IF EXISTS booking_details;
+DROP TABLE IF EXISTS xac_nhan;
 
 
 CREATE TABLE companies (
@@ -61,14 +62,15 @@ CREATE TABLE bookings (
     extra_fee VARCHAR(255), -- Chi phí phụ (ghi chú)
     CONSTRAINT fk_container_code FOREIGN KEY (container_code) REFERENCES containers(container_code)
 );
+CREATE UNIQUE INDEX unique_booking_seal_only ON bookings (seal);
 CREATE TABLE booking_details (
     id SERIAL PRIMARY KEY,
     booking_no VARCHAR(50),
     pickup_date DATE NOT NULL,
     company_name VARCHAR(100) NOT NULL,
     transporter_name VARCHAR(70) NOT NULL,
-    invoice_company VARCHAR(100), -- Công ty làm hoá đơn (copy từ bookings)
-    shipping_line VARCHAR(100), -- Hãng tàu (copy từ bookings)
+    invoice_company VARCHAR(100), 
+    shipping_line VARCHAR(100), 
     container_code VARCHAR(20) NOT NULL,
     quantity INT NOT NULL,
     size VARCHAR(10) NOT NULL,
@@ -102,10 +104,49 @@ CREATE TABLE booking_details (
     lowering_invoice_supplier VARCHAR(100),
     charged BOOLEAN DEFAULT FALSE
 );
-CREATE UNIQUE INDEX unique_booking_all_fields
-ON bookings (
-    booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee
+CREATE TABLE xac_nhan (
+    id SERIAL PRIMARY KEY,
+    booking_no VARCHAR(50),
+    pickup_date DATE NOT NULL,
+    company_name VARCHAR(100) NOT NULL,
+    transporter_name VARCHAR(70) NOT NULL,
+    invoice_company VARCHAR(100),
+    shipping_line VARCHAR(100),
+    container_code VARCHAR(20) NOT NULL,
+    seal VARCHAR(50),
+    quantity INT NOT NULL,
+    size VARCHAR(10) NOT NULL,
+    pickup_location VARCHAR(255),
+    dropoff_location VARCHAR(255),
+    type VARCHAR(20),
+    extra_fee VARCHAR(255),
+    -- Các trường bổ sung nghiệp vụ từ booking_details
+    thanh_ly VARCHAR(100),
+    phu_thu VARCHAR(100),
+    hoa_don VARCHAR(100),
+    ngay_hd DATE,
+    cai_mep VARCHAR(100),
+    phi_hun_trung INTEGER ,
+    kiem_hoa VARCHAR(100),
+    xin_so_cont VARCHAR(100),
+    qua_tai VARCHAR(100),
+    phi_van_chuyen INTEGER ,
+    vat_8 INTEGER ,
+    ghi_chu TEXT,
+    -- Các trường tính phí chi tiết từ booking_details
+    receiving_price INTEGER ,
+    delivery_price INTEGER ,
+    lifting_fee INTEGER ,
+    lowering_fee INTEGER ,
+    lifting_invoice VARCHAR(100),
+    lifting_invoice_date DATE,
+    lifting_invoice_supplier VARCHAR(100),
+    lowering_invoice VARCHAR(100),
+    lowering_invoice_date DATE,
+    lowering_invoice_supplier VARCHAR(100),
+    charged BOOLEAN
 );
+
 SELECT * FROM companies;
 SELECT * FROM transporters;
 SELECT * FROM locations;
@@ -114,4 +155,4 @@ SELECT * FROM containers;
 SELECT * FROM container_transactions;
 SELECT * FROM bookings;
 SELECT * FROM booking_details;
-
+SELECT * FROM xac_nhan;

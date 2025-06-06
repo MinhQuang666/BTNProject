@@ -322,12 +322,12 @@ function renderBookingList() {
                     showToast('Đã chuyển sang tính phí!', 'success');
                 } else {
                     const msg = await res.text();
-                    sendBtn.textContent = `Chuyển sang tính phí (${pickupDate})`;
+                    sendBtn.textContent = `Chuyển sang tính phí`;
                     sendBtn.disabled = false;
                     showToast('Lỗi: ' + msg, 'error');
                 }
             } catch (err) {
-                sendBtn.textContent = `Chuyển sang tính phí (${pickupDate})`;
+                sendBtn.textContent = `Chuyển sang tính phí `;
                 sendBtn.disabled = false;
                 showToast('Lỗi kết nối server!', 'error');
             }

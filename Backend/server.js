@@ -648,6 +648,39 @@ app.put('/bookings/:booking_no', async (req, res) => {
         pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, invoice_company, shipping_line, type, extra_fee
     } = req.body;
     try {
+        // Lấy bản ghi cũ
+        const oldResult = await pool.query('SELECT * FROM bookings WHERE booking_no = $1', [booking_no]);
+        if (oldResult.rows.length === 0) {
+            return res.status(404).send('Không tìm thấy booking.');
+        }
+        const old = oldResult.rows[0];
+        // So sánh nếu không có trường nào thay đổi thì báo lỗi
+        const isSame =
+            old.pickup_date?.toISOString().slice(0,10) === pickup_date &&
+            old.company_name === company_name &&
+            old.transporter_name === transporter_name &&
+            old.container_code === container_code &&
+            old.seal === seal &&
+            old.quantity == quantity &&
+            old.size === size &&
+            (old.pickup_location || '') === (pickup_location || '') &&
+            (old.dropoff_location || '') === (dropoff_location || '') &&
+            (old.invoice_company || '') === (invoice_company || '') &&
+            (old.shipping_line || '') === (shipping_line || '') &&
+            (old.type || '') === (type || '') &&
+            (old.extra_fee || '') === (extra_fee || '');
+        if (isSame) {
+            return res.status(409).send('Không có gì thay đổi.');
+        }
+        // Kiểm tra trùng unique với bản ghi khác (ngoại trừ chính nó)
+        const uniqueCheck = await pool.query(
+            `SELECT * FROM bookings WHERE booking_no != $1 AND pickup_date = $2 AND company_name = $3 AND transporter_name = $4 AND container_code = $5 AND seal = $6 AND quantity = $7 AND size = $8 AND pickup_location = $9 AND dropoff_location = $10 AND type = $11 AND extra_fee = $12`,
+            [booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee]
+        );
+        if (uniqueCheck.rows.length > 0) {
+            return res.status(409).send('Booking đã tồn tại.');
+        }
+        // Thực hiện cập nhật
         const result = await pool.query(
             `UPDATE bookings SET pickup_date=$1, company_name=$2, transporter_name=$3, container_code=$4, seal=$5, quantity=$6, size=$7, pickup_location=$8, dropoff_location=$9, invoice_company=$10, shipping_line=$11, type=$12, extra_fee=$13 WHERE booking_no=$14 RETURNING *`,
             [pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, invoice_company, shipping_line, type, extra_fee, booking_no]
@@ -926,6 +959,17 @@ app.post('/booking-details/from-booking', async (req, res) => {
     } catch (err) {
         console.error('Error chuyển booking sang booking_details:', err);
         res.status(500).send('Lỗi khi chuyển booking sang booking_details.');
+    }
+});
+
+// API lấy toàn bộ dữ liệu bảng xac_nhan (không phân trang, dùng cho export Excel)
+app.get('/xac-nhan/all', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM xac_nhan ORDER BY pickup_date DESC, id DESC');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching xac_nhan:', err);
+        res.status(500).send('Lỗi khi lấy dữ liệu xac_nhan.');
     }
 });
 

@@ -511,3 +511,39 @@ input[type="text"], select {
         grid-column: 1 / span 1;
     }
 }
+
+/* --- Export Excel Page Styles --- */
+.export-container {
+    max-width: 600px;
+    margin: 60px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    padding: 40px 32px 32px 32px;
+    text-align: center;
+}
+.export-title {
+    font-size: 2em;
+    font-weight: bold;
+    color: #1976d2;
+    margin-bottom: 24px;
+}
+.export-btn {
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 14px 36px;
+    font-size: 1.2em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.export-btn:hover {
+    background: #388e3c;
+}
+.export-status {
+    margin-top: 18px;
+    color: #1976d2;
+    font-size: 1em;
+}
