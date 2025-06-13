@@ -293,18 +293,16 @@ function renderBookingList() {
             <td>${booking.invoice_company || ''}</td>
             <td>${booking.shipping_line || ''}</td>
             <td>
-                <button class="send-to-detail-btn">Chuyển sang tính phí</button>
+                <button class="send-to-detail-btn" data-id="${booking.id}">Chuyển sang tính phí</button>
                 <button onclick="deleteBooking(this)">Xóa</button>
             </td>
         `;
         tableBody.appendChild(newRow);
         // Gán sự kiện cho nút chuyển sang tính phí
         const sendBtn = newRow.querySelector('.send-to-detail-btn');
-        // Đảm bảo pickup_date gửi về backend là đúng ngày (không lệch ngày)
-        // Hiển thị ngày lấy rõ ràng trên nút chuyển
-        const pickupDate = booking.pickup_date ? (typeof booking.pickup_date === 'string' && booking.pickup_date.length > 10 ? booking.pickup_date.slice(0, 10) : booking.pickup_date) : '';
+        const bookingId = booking.id;
         sendBtn.textContent = `Chuyển sang tính phí`;
-        sendBtn.title = `Ngày lấy: ${pickupDate}`;
+        sendBtn.title = `ID: ${bookingId}`;
         sendBtn.addEventListener('click', async function() {
             sendBtn.disabled = true;
             sendBtn.textContent = 'Đang chuyển...';
@@ -312,7 +310,7 @@ function renderBookingList() {
                 const res = await fetch('http://localhost:3000/booking-details/from-booking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ booking_no: booking.booking_no, pickup_date: pickupDate })
+                    body: JSON.stringify({ id: bookingId })
                 });
                 if (res.ok) {
                     sendBtn.textContent = 'Đã chuyển';

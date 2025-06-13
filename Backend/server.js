@@ -932,7 +932,33 @@ app.get('/transport_companies', async (req, res) => {
 // API chuyển booking sang booking_details (theo booking_no và pickup_date)
 app.post('/booking-details/from-booking', async (req, res) => {
     console.log('POST /booking-details/from-booking', req.body); // Thêm log để debug
-    const { booking_no, pickup_date } = req.body;
+    const { id, booking_no, pickup_date } = req.body;
+    if (id) {
+        // Nếu có id, lấy booking theo id
+        try {
+            const result = await pool.query('SELECT * FROM bookings WHERE id = $1', [id]);
+            if (result.rows.length === 0) {
+                return res.status(404).send('Không tìm thấy booking với id này.');
+            }
+            const b = result.rows[0];
+            // Kiểm tra đã có trong booking_details chưa (theo booking_no + container_code + pickup_date)
+            const exists = await pool.query('SELECT * FROM booking_details WHERE booking_no = $1 AND container_code = $2 AND pickup_date = $3', [b.booking_no, b.container_code, b.pickup_date]);
+            if (exists.rows.length > 0) {
+                return res.status(409).send('Booking đã tồn tại trong bảng booking_details.');
+            }
+            // Thêm vào booking_details
+            await pool.query(
+                `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, charged)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, FALSE)` ,
+                [b.booking_no, b.pickup_date, b.company_name, b.transporter_name, b.invoice_company, b.shipping_line, b.container_code, b.quantity, b.size, b.pickup_location, b.dropoff_location, b.type, b.extra_fee]
+            );
+            return res.status(201).send('Đã chuyển sang bảng booking_details.');
+        } catch (err) {
+            console.error('Error chuyển booking sang booking_details:', err);
+            return res.status(500).send('Lỗi khi chuyển booking sang booking_details.');
+        }
+    }
+    // Nếu không có id, fallback về logic cũ (giữ cho tương thích)
     if (!booking_no || !pickup_date) {
         return res.status(400).send('Thiếu thông tin booking_no hoặc pickup_date.');
     }
@@ -944,8 +970,8 @@ app.post('/booking-details/from-booking', async (req, res) => {
         }
         // Nếu có nhiều booking trùng booking_no, lấy bản gần nhất (hoặc bản đầu tiên)
         const b = result.rows[0];
-        // Kiểm tra đã có trong booking_details chưa (theo booking_no và pickup_date của bản lấy ra)
-        const exists = await pool.query('SELECT * FROM booking_details WHERE booking_no = $1 AND pickup_date = $2', [b.booking_no, b.pickup_date]);
+        // Kiểm tra đã có trong booking_details chưa (theo booking_no + container_code + pickup_date)
+        const exists = await pool.query('SELECT * FROM booking_details WHERE booking_no = $1 AND container_code = $2 AND pickup_date = $3', [b.booking_no, b.container_code, b.pickup_date]);
         if (exists.rows.length > 0) {
             return res.status(409).send('Booking đã tồn tại trong bảng booking_details.');
         }
