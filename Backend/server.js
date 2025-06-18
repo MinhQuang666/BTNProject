@@ -646,15 +646,15 @@ app.post('/bookings', async (req, res) => {
     }
 });
 
-// Sửa booking
-app.put('/bookings/:booking_no', async (req, res) => {
-    const { booking_no } = req.params;
+// Sửa booking theo id SERIAL
+app.put('/bookings/:id', async (req, res) => {
+    const { id } = req.params;
     const {
         pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, invoice_company, shipping_line, type, extra_fee
     } = req.body;
     try {
         // Lấy bản ghi cũ
-        const oldResult = await pool.query('SELECT * FROM bookings WHERE booking_no = $1', [booking_no]);
+        const oldResult = await pool.query('SELECT * FROM bookings WHERE id = $1', [id]);
         if (oldResult.rows.length === 0) {
             return res.status(404).send('Không tìm thấy booking.');
         }
@@ -677,23 +677,18 @@ app.put('/bookings/:booking_no', async (req, res) => {
         if (isSame) {
             return res.status(409).send('Không có gì thay đổi.');
         }
-        // Kiểm tra trùng unique với bản ghi khác (ngoại trừ chính nó)
-        const uniqueCheck = await pool.query(
-            `SELECT * FROM bookings WHERE booking_no != $1 AND pickup_date = $2 AND company_name = $3 AND transporter_name = $4 AND container_code = $5 AND seal = $6 AND quantity = $7 AND size = $8 AND pickup_location = $9 AND dropoff_location = $10 AND type = $11 AND extra_fee = $12`,
-            [booking_no, pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee]
-        );
-        if (uniqueCheck.rows.length > 0) {
-            return res.status(409).send('Booking đã tồn tại.');
-        }
         // Thực hiện cập nhật
         const result = await pool.query(
-            `UPDATE bookings SET pickup_date=$1, company_name=$2, transporter_name=$3, container_code=$4, seal=$5, quantity=$6, size=$7, pickup_location=$8, dropoff_location=$9, invoice_company=$10, shipping_line=$11, type=$12, extra_fee=$13 WHERE booking_no=$14 RETURNING *`,
-            [pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, invoice_company, shipping_line, type, extra_fee, booking_no]
+            `UPDATE bookings SET pickup_date=$1, company_name=$2, transporter_name=$3, container_code=$4, seal=$5, quantity=$6, size=$7, pickup_location=$8, dropoff_location=$9, invoice_company=$10, shipping_line=$11, type=$12, extra_fee=$13 WHERE id=$14 RETURNING *`,
+            [pickup_date, company_name, transporter_name, container_code, seal, quantity, size, pickup_location, dropoff_location, invoice_company, shipping_line, type, extra_fee, id]
         );
         if (result.rowCount === 0) {
             return res.status(404).send('Không tìm thấy booking.');
         }
-        res.status(200).json(result.rows[0]);
+        // Ép pickup_date về dạng YYYY-MM-DD khi trả về
+        const booking = result.rows[0];
+        booking.pickup_date = booking.pickup_date ? booking.pickup_date.toISOString().slice(0,10) : null;
+        res.status(200).json(booking);
     } catch (err) {
         console.error('Error updating booking:', err);
         res.status(500).send('Lỗi khi sửa booking.');
@@ -724,6 +719,21 @@ app.delete('/bookings', async (req, res) => {
             `DELETE FROM bookings WHERE booking_no = $1 AND pickup_date = $2 AND company_name = $3 AND transporter_name = $4 AND container_code = $5 AND seal = $6 AND type = $7 AND quantity = $8 AND size = $9 AND pickup_location = $10 AND dropoff_location = $11 AND extra_fee = $12`,
             [booking_no, pickup_date, company_name, transporter_name, container_code, seal, type, quantity, size, pickup_location, dropoff_location, extra_fee]
         );
+        if (result.rowCount === 0) {
+            return res.status(404).send('Không tìm thấy booking.');
+        }
+        res.status(200).send('Booking đã được xóa.');
+    } catch (err) {
+        console.error('Error deleting booking:', err);
+        res.status(500).send('Lỗi khi xóa booking.');
+    }
+});
+
+// Xóa booking theo id SERIAL
+app.delete('/bookings/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM bookings WHERE id = $1', [id]);
         if (result.rowCount === 0) {
             return res.status(404).send('Không tìm thấy booking.');
         }

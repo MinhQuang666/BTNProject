@@ -79,39 +79,60 @@ document.getElementById('bookingForm').addEventListener('submit', async function
 function deleteBooking(button) {
     if (!confirm('Bạn có chắc chắn muốn xóa booking này không?')) return;
     const row = button.parentElement.parentElement;
-    // Lấy đủ thông tin định danh booking từ các cột
-    const booking = {
-        pickup_date: row.children[0].textContent,
-        company_name: row.children[1].textContent,
-        transporter_name: row.children[2].textContent,
-        booking_no: row.children[3].textContent,
-        container_code: row.children[4].textContent,
-        seal: row.children[5].textContent,
-        type: row.children[6].textContent === 'Nhập' ? 'import' : (row.children[6].textContent === 'Xuất' ? 'export' : row.children[6].textContent),
-        quantity: row.children[7].textContent,
-        size: row.children[8].textContent,
-        pickup_location: row.children[9].textContent,
-        dropoff_location: row.children[10].textContent,
-        extra_fee: row.children[11].textContent
-    };
-    fetch('http://localhost:3000/bookings', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(booking)
-    })
-    .then(response => {
-        if (response.ok) {
-            showToast('Đã xóa booking!', 'success');
-            fetchBookings(); // Làm mới lại danh sách từ backend
-            localStorage.setItem('bookingListUpdated', Date.now().toString());
-        } else {
-            response.text().then(text => showToast('Lỗi: ' + text, 'error'));
-        }
-    })
-    .catch(err => {
-        showToast('Lỗi kết nối server!', 'error');
-        console.error('Lỗi khi xóa booking:', err);
-    });
+    // Lấy id booking từ thuộc tính data-id hoặc từ dữ liệu đã fetch
+    const bookingId = row.getAttribute('data-id');
+    if (bookingId) {
+        fetch(`http://localhost:3000/bookings/${encodeURIComponent(bookingId)}`, {
+            method: 'DELETE',
+        })
+        .then(response => {
+            if (response.ok) {
+                showToast('Đã xóa booking!', 'success');
+                fetchBookings();
+                localStorage.setItem('bookingListUpdated', Date.now().toString());
+            } else {
+                response.text().then(text => showToast('Lỗi: ' + text, 'error'));
+            }
+        })
+        .catch(err => {
+            showToast('Lỗi kết nối server!', 'error');
+            console.error('Lỗi khi xóa booking:', err);
+        });
+    } else {
+        // Fallback: xóa theo nhiều trường như cũ (nếu chưa có id)
+        const booking = {
+            pickup_date: row.children[0].textContent,
+            company_name: row.children[1].textContent,
+            transporter_name: row.children[2].textContent,
+            booking_no: row.children[3].textContent,
+            container_code: row.children[4].textContent,
+            seal: row.children[5].textContent,
+            type: row.children[6].textContent === 'Nhập' ? 'import' : (row.children[6].textContent === 'Xuất' ? 'export' : row.children[6].textContent),
+            quantity: row.children[7].textContent,
+            size: row.children[8].textContent,
+            pickup_location: row.children[9].textContent,
+            dropoff_location: row.children[10].textContent,
+            extra_fee: row.children[11].textContent
+        };
+        fetch('http://localhost:3000/bookings', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(booking)
+        })
+        .then(response => {
+            if (response.ok) {
+                showToast('Đã xóa booking!', 'success');
+                fetchBookings();
+                localStorage.setItem('bookingListUpdated', Date.now().toString());
+            } else {
+                response.text().then(text => showToast('Lỗi: ' + text, 'error'));
+            }
+        })
+        .catch(err => {
+            showToast('Lỗi kết nối server!', 'error');
+            console.error('Lỗi khi xóa booking:', err);
+        });
+    }
 }
 
 function showBookingForm() {
@@ -277,6 +298,7 @@ function renderBookingList() {
     const pageBookings = bookingsData.slice(startIdx, endIdx);
     pageBookings.forEach(booking => {
         const newRow = document.createElement('tr');
+        newRow.setAttribute('data-id', booking.id); // Gán id SERIAL vào mỗi dòng
         newRow.innerHTML = `
             <td>${formatDate(booking.pickup_date) || ''}</td>
             <td>${booking.company_name || ''}</td>
@@ -511,6 +533,11 @@ function showEditBookingModal(booking) {
         document.body.appendChild(modal);
     }
     modal.style.display = 'flex';
+    // Gán data-id cho form cập nhật booking bằng id SERIAL
+    const editForm = modal.querySelector('#editBookingForm');
+    if (editForm) {
+        editForm.setAttribute('data-id', booking.id || '');
+    }
     modal.querySelector('#cancelEditBookingBtn').onclick = function() {
         modal.style.display = 'none';
     };
@@ -526,7 +553,10 @@ function showEditBookingModal(booking) {
         }
         // Gửi API cập nhật booking (PUT)
         try {
-            const res = await fetch(`http://localhost:3000/bookings/${encodeURIComponent(data.booking_no)}`, {
+            // Lấy id booking từ data-id (đã gán khi mở form sửa)
+            const bookingId = this.getAttribute('data-id');
+            const url = bookingId ? `http://localhost:3000/bookings/${encodeURIComponent(bookingId)}` : `http://localhost:3000/bookings/${encodeURIComponent(data.booking_no)}`;
+            const res = await fetch(url, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
