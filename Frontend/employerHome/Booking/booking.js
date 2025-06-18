@@ -513,39 +513,83 @@ function showEditBookingModal(booking) {
         modal.style.alignItems = 'center';
         modal.style.justifyContent = 'center';
         modal.style.zIndex = 99999;
-        modal.innerHTML = `
-        <div style="background:#fff;padding:24px 20px 16px 20px;border-radius:10px;min-width:320px;max-width:95vw;max-height:90vh;overflow:auto;box-shadow:0 2px 16px rgba(0,0,0,0.18);">
-            <h2 style="margin-top:0;font-size:1.1rem;">Cập nhật thông tin booking</h2>
-            <form id="editBookingForm">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <label>Ngày lấy: <input type="date" name="pickup_date" value="${booking.pickup_date ? formatDate(booking.pickup_date) : ''}" required></label>
-                    <label>Công ty: <input type="text" name="company_name" value="${booking.company_name||''}" required></label>
-                    <label>Nhà xe: <input type="text" name="transporter_name" value="${booking.transporter_name||''}" required></label>
-                    <label>BK No: <input type="text" name="booking_no" value="${booking.booking_no||''}" required></label>
-                    <label>Mã Container: <input type="text" name="container_code" value="${booking.container_code||''}" required></label>
-                    <label>Seal: <input type="text" name="seal" value="${booking.seal||''}" required></label>
-                    <label>Số lượng: <input type="number" name="quantity" value="${booking.quantity||1}" required></label>
-                    <label>Kích cỡ: <input type="text" name="size" value="${booking.size||''}" required></label>
-                    <label>Nơi lấy: <input type="text" name="pickup_location" value="${booking.pickup_location||''}"></label>
-                    <label>Nơi hạ: <input type="text" name="dropoff_location" value="${booking.dropoff_location||''}"></label>
-                    <label>Loại hình:
-  <select name="type" required>
-    <option value="export" ${booking.type === 'export' ? 'selected' : ''}>Xuất</option>
-    <option value="import" ${booking.type === 'import' ? 'selected' : ''}>Nhập</option>
-  </select>
-</label>
-                    <label>Chi phí phụ: <input type="text" name="extra_fee" value="${booking.extra_fee||''}"></label>
-                    <label>Công ty HĐ: <input type="text" name="invoice_company" value="${booking.invoice_company||''}"></label>
-                    <label>Hãng tàu: <input type="text" name="shipping_line" value="${booking.shipping_line||''}"></label>
-                </div>
-                <div style="margin-top:16px;text-align:right;">
-                    <button type="submit" class="btn btn-success">Lưu cập nhật</button>
-                    <button type="button" id="cancelEditBookingBtn" class="btn btn-cancel" style="background:red;color:#fff;margin-left:8px;">Hủy</button>
-                </div>
-            </form>
-        </div>`;
-        document.body.appendChild(modal);
     }
+    modal.innerHTML = `
+    <div class="container" style="background:#fff;max-width:520px;width:95vw;max-height:90vh;box-shadow:0 2px 16px rgba(0,0,0,0.18);border-radius:10px;overflow:auto;">
+        <h1 style="font-size:1.3rem;">Cập nhật Thông Tin Booking</h1>
+        <form id="editBookingForm" autocomplete="off" style="max-height:85vh;">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="edit-pickupDate">Ngày lấy:</label>
+                    <input type="date" id="edit-pickupDate" name="pickup_date" value="${booking.pickup_date ? formatDate(booking.pickup_date) : ''}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-company">Công ty:</label>
+                    <input type="text" id="edit-company" name="company_name" value="${booking.company_name||''}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-transporter">Nhà xe:</label>
+                    <input type="text" id="edit-transporter" name="transporter_name" value="${booking.transporter_name||''}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-bookingNo">BK No:</label>
+                    <input type="text" id="edit-bookingNo" name="booking_no" value="${booking.booking_no||''}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-containerNo">Mã số Container:</label>
+                    <input type="text" id="edit-containerNo" name="container_code" value="${booking.container_code||''}" required pattern="^[A-Z]{4}[0-9]{7}$" title="4 chữ cái in hoa + 7 số, ví dụ: ABCD1234567">
+                </div>
+                <div class="form-group">
+                    <label for="edit-seal">Seal:</label>
+                    <input type="text" id="edit-seal" name="seal" value="${booking.seal||''}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-quantity">Số lượng:</label>
+                    <input type="number" id="edit-quantity" name="quantity" value="${booking.quantity||1}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-size">Kích cỡ:</label>
+                    <select id="edit-size" name="size" required>
+                        <option value="20" ${booking.size=="20"?'selected':''}>20'</option>
+                        <option value="40" ${booking.size=="40"?'selected':''}>40'</option>
+                        <option value="45" ${booking.size=="45"?'selected':''}>45'</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-pickupLocation">Nơi lấy Container:</label>
+                    <input type="text" id="edit-pickupLocation" name="pickup_location" value="${booking.pickup_location||''}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-dropoffLocation">Nơi hạ Container:</label>
+                    <input type="text" id="edit-dropoffLocation" name="dropoff_location" value="${booking.dropoff_location||''}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-type">Loại hình:</label>
+                    <select id="edit-type" name="type" required>
+                        <option value="import" ${booking.type=="import"?'selected':''}>Nhập</option>
+                        <option value="export" ${booking.type=="export"?'selected':''}>Xuất</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-extraFee">Chi phí phụ:</label>
+                    <input type="text" id="edit-extraFee" name="extra_fee" value="${booking.extra_fee||''}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-invoiceCompany">Công ty làm hoá đơn:</label>
+                    <input type="text" id="edit-invoiceCompany" name="invoice_company" value="${booking.invoice_company||''}">
+                </div>
+                <div class="form-group">
+                    <label for="edit-shippingLine">Hãng tàu:</label>
+                    <input type="text" id="edit-shippingLine" name="shipping_line" value="${booking.shipping_line||''}">
+                </div>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-success">Lưu cập nhật</button>
+                <button type="button" id="cancelEditBookingBtn" class="btn btn-cancel" style="background-color:red;color:white;">Hủy</button>
+            </div>
+        </form>
+    </div>`;
+    document.body.appendChild(modal);
     modal.style.display = 'flex';
     // Gán data-id cho form cập nhật booking bằng id SERIAL
     const editForm = modal.querySelector('#editBookingForm');
