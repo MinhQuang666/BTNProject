@@ -362,31 +362,15 @@ document.addEventListener('DOMContentLoaded', function() {
             ['ghi_chu', 'Ghi chú'],
             ['id', 'ID']
         ];
-        let html = '<table style="width:100%;border-collapse:collapse;">';
-        // Xác định các trường số để hiển thị VNĐ (chỉ các trường tiền, không bao gồm quantity, size)
-        const numericFields = [
-            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8','extra_fee'
-        ];
-        fieldLabels.forEach(([key, label]) => {
-            let val = booking[key];
-            let displayVal = val;
-            if (key.includes('date') && val) displayVal = formatDate(val);
-            if (displayVal === '/') {
+        let html = '';
+        Object.entries(booking).forEach(([key, value]) => {
+            const label = fieldLabels.find(f => f[0] === key)?.[1] || key;
+            let displayVal = value;
+            if (displayVal === undefined || displayVal === null || displayVal === '') {
                 displayVal = '<span style="color:#aaa;">(trống)</span>';
-            } else if (numericFields.includes(key)) {
-                if (displayVal === undefined || displayVal === null || displayVal === '') {
-                    displayVal = '<span style="color:#aaa;">0 VNĐ</span>';
-                } else if (!isNaN(displayVal)) {
-                    displayVal = formatMoneyDisplay(displayVal);
-                }
-            } else {
-                if (displayVal === undefined || displayVal === null || displayVal === '') {
-                    displayVal = '<span style="color:#aaa;">(trống)</span>';
-                }
             }
-            html += `<tr><td style='font-weight:600;padding:4px 8px;'>${label}</td><td style='padding:4px 8px;'>${displayVal}</td></tr>`;
+            html += `<div class='detail-label'>${label}</div><div class='detail-value'>${displayVal}</div>`;
         });
-        html += '</table>';
         document.getElementById('detailFields').innerHTML = html;
     }
     // Đóng modal chi tiết
@@ -567,31 +551,20 @@ document.addEventListener('DOMContentLoaded', function() {
             ['ghi_chu', 'Ghi chú'],
             ['id', 'ID']
         ];
-        let html = '<table style="width:100%;border-collapse:collapse;">';
-        // Xác định các trường số để hiển thị VNĐ (chỉ các trường tiền, không bao gồm quantity, size)
+        let html = '';
         const numericFields = [
-            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8','extra_fee'
+            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
         ];
-        fieldLabels.forEach(([key, label]) => {
-            let val = booking[key];
-            let displayVal = val;
-            if (key.includes('date') && val) displayVal = formatDate(val);
-            if (displayVal === '/') {
+        Object.entries(booking).forEach(([key, value]) => {
+            const label = fieldLabels.find(f => f[0] === key)?.[1] || key;
+            let displayVal = value;
+            if (numericFields.includes(key)) {
+                displayVal = formatMoneyDisplay(displayVal);
+            } else if (displayVal === undefined || displayVal === null || displayVal === '') {
                 displayVal = '<span style="color:#aaa;">(trống)</span>';
-            } else if (numericFields.includes(key)) {
-                if (displayVal === undefined || displayVal === null || displayVal === '') {
-                    displayVal = '<span style="color:#aaa;">0 VNĐ</span>';
-                } else if (!isNaN(displayVal)) {
-                    displayVal = formatMoneyDisplay(displayVal);
-                }
-            } else {
-                if (displayVal === undefined || displayVal === null || displayVal === '') {
-                    displayVal = '<span style="color:#aaa;">(trống)</span>';
-                }
             }
-            html += `<tr><td style='font-weight:600;padding:4px 8px;'>${label}</td><td style='padding:4px 8px;'>${displayVal}</td></tr>`;
+            html += `<div class='detail-label'>${label}</div><div class='detail-value'>${displayVal}</div>`;
         });
-        html += '</table>';
         document.getElementById('detailFields').innerHTML = html;
     }
     // Đóng modal chi tiết
@@ -746,7 +719,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Patch submitChargeForm to send raw values
-    const originalSubmitChargeForm = submitChargeForm;
     async function patchedSubmitChargeForm(e) {
         e.preventDefault();
         const id = this.getAttribute('data-id');
@@ -793,4 +765,319 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isNaN(num)) return '';
         return num.toLocaleString('vi-VN') + ' VNĐ';
     }
+
+    // --- HIỂN THỊ CÁC TRƯỜNG TÍNH PHÍ TRONG CHI TIẾT BOOKING ---
+    // Sửa lại hàm renderBookingList để hiển thị các trường tính phí
+    function renderBookingList() {
+        const tableBody = document.querySelector('#bookingList tbody');
+        tableBody.innerHTML = '';
+        allBookingDetails.forEach(booking => {
+            const displayTransportCompany = booking.transport_companies || booking.transporter_name || '';
+            const isCharged = booking.charged === true;
+            let statusHtml = '';
+            if (isCharged) {
+                statusHtml = '<span style="display:inline-block;padding:2px 10px;border-radius:8px;background:#4CAF50;color:#fff;font-weight:600;">Đã tính phí</span>';
+            } else {
+                statusHtml = '<span style="display:inline-block;padding:2px 10px;border-radius:8px;background:#FFC107;color:#333;font-weight:600;">Chờ tính phí</span>';
+            }
+            const row = document.createElement('tr');
+            row.className = isCharged ? 'charged-row' : 'waiting-charge';
+            row.innerHTML = `
+                <td>${formatDate(booking.pickup_date) || ''}</td>
+                <td>${booking.company_name || ''}</td>
+                <td>${displayTransportCompany}</td>
+                <td>${booking.booking_no || ''}</td>
+                <td>${booking.container_code || ''}</td>
+                <td>${statusHtml}</td>
+                <td>${booking.type === 'import' ? 'Nhập' : booking.type === 'export' ? 'Xuất' : (booking.type || '')}</td>
+                <td>${booking.quantity || ''}</td>
+                <td>${booking.size || ''}</td>
+                <td>${booking.pickup_location || ''}</td>
+                <td>${booking.dropoff_location || ''}</td>
+                <td>${booking.extra_fee || ''}</td>
+                <td>${booking.invoice_company || ''}</td>
+                <td>${booking.shipping_line || ''}</td>
+                <td style="text-align:center;">
+                    <button class="detail-btn action-btn" data-id="${booking.id}">Chi tiết</button>
+                    <button class="charge-btn action-btn" data-id="${booking.id}" style="background:${isCharged ? '#2196F3' : '#FFC107'};color:${isCharged ? '#fff' : '#333'};font-weight:600;">${isCharged ? 'Sửa' : 'Tính phí'}</button>
+                    <button class="delete-detail-btn action-btn" data-id="${booking.id}" style="background:#dc3545;">Xoá</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+        // Gán sự kiện cho nút Tính phí/Sửa
+        document.querySelectorAll('.charge-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                openChargeModal(id);
+            });
+        });
+        // Gán sự kiện cho nút Chi tiết
+        document.querySelectorAll('.detail-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                openDetailModal(id, this);
+            });
+        });
+        // Gán sự kiện cho nút Xóa booking_details
+        document.querySelectorAll('.delete-detail-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                if (confirm('Bạn có chắc chắn muốn xóa booking này khỏi bảng booking-detail?')) {
+                    deleteBookingDetail(id);
+                }
+            });
+        });
+    }
+
+    // Mở modal chi tiết booking
+    function openDetailModal(id, btn) {
+        const modal = document.getElementById('detailModal');
+        modal.style.display = 'flex';
+        document.querySelectorAll('.detail-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const booking = allBookingDetails.find(b => b.id == id);
+        // Map field keys to user-friendly Vietnamese labels (fixed order)
+        const fieldLabels = [
+            ['booking_no', 'Số Booking'],
+            ['pickup_date', 'Ngày lấy'],
+            ['company_name', 'Công ty'],
+            ['transporter_name', 'Nhà xe'],
+            ['invoice_company', 'Công ty làm Hoá Đơn'],
+            ['shipping_line', 'Hãng tàu'],
+            ['container_code', 'Mã số Container'],
+            ['quantity', 'Số lượng'],
+            ['size', 'Kích cỡ'],
+            ['pickup_location', 'Nơi lấy Container'],
+            ['dropoff_location', 'Nơi hạ Container'],
+            ['type', 'Loại hình'],
+            ['extra_fee', 'Chi phí phụ'],
+            ['receiving_price', 'Giá nhận'],
+            ['delivery_price', 'Giá giao ngoài xe'],
+            ['lifting_fee', 'Phí nâng'],
+            ['lowering_fee', 'Phí hạ'],
+            ['lifting_invoice', 'Hóa đơn phí nâng'],
+            ['lowering_invoice', 'Hóa đơn phí hạ'],
+            ['lifting_invoice_date', 'Ngày hóa đơn phí nâng'],
+            ['lowering_invoice_date', 'Ngày hóa đơn phí hạ'],
+            ['lifting_invoice_supplier', 'Nhà cung cấp hóa đơn phí nâng'],
+            ['lowering_invoice_supplier', 'Nhà cung cấp hóa đơn phí hạ'],
+            ['thanh_ly', 'Thanh lý'],
+            ['phu_thu', 'Phụ thu'],
+            ['hoa_don', 'Hóa đơn'],
+            ['ngay_hd', 'Ngày hóa đơn'],
+            ['cai_mep', 'Cái Mép'],
+            ['phi_hun_trung', 'Phí hun trùng'],
+            ['kiem_hoa', 'Kiểm hóa'],
+            ['xin_so_cont', 'Xin số cont'],
+            ['qua_tai', 'Quá tải'],
+            ['phi_van_chuyen', 'Phí vận chuyển'],
+            ['vat_8', 'VAT (8%)'],
+            ['ghi_chu', 'Ghi chú'],
+            ['id', 'ID']
+        ];
+        let html = '';
+        const numericFields = [
+            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
+        ];
+        Object.entries(booking).forEach(([key, value]) => {
+            const label = fieldLabels.find(f => f[0] === key)?.[1] || key;
+            let displayVal = value;
+            if (numericFields.includes(key)) {
+                displayVal = formatMoneyDisplay(displayVal);
+            } else if (displayVal === undefined || displayVal === null || displayVal === '') {
+                displayVal = '<span style="color:#aaa;">(trống)</span>';
+            }
+            html += `<div class='detail-label'>${label}</div><div class='detail-value'>${displayVal}</div>`;
+        });
+        document.getElementById('detailFields').innerHTML = html;
+    }
+    // Đóng modal chi tiết
+    function closeDetailModal() {
+        document.getElementById('detailModal').style.display = 'none';
+        document.querySelectorAll('.detail-btn').forEach(b => b.classList.remove('active'));
+    }
+    document.getElementById('closeDetailModal').onclick = closeDetailModal;
+    document.getElementById('detailModal').onclick = function(e) {
+        if (e.target === this) closeDetailModal();
+    };
+
+    // Mở modal tính phí
+    function openChargeModal(id) {
+        const modal = document.getElementById('chargeModal');
+        modal.style.display = 'flex';
+        // Lấy booking theo id
+        const booking = allBookingDetails.find(b => b.id == id);
+        // Hiển thị thông tin booking (chỉ các trường của bảng bookings)
+        let infoHtml = '';
+        [
+            ['Mã Booking', booking.booking_no],
+            ['Ngày lấy', formatDate(booking.pickup_date)],
+            ['Công ty', booking.company_name],
+            ['Nhà xe', booking.transporter_name],
+            ['Công ty làm Hoá Đơn', booking.invoice_company !== undefined ? booking.invoice_company : ''],
+            ['Hãng tàu', booking.shipping_line !== undefined ? booking.shipping_line : ''],
+            ['Mã Container', booking.container_code],
+            ['Số lượng', booking.quantity],
+            ['Kích cỡ', booking.size],
+            ['Nơi lấy', booking.pickup_location],
+            ['Nơi hạ', booking.dropoff_location],
+            ['Loại hình', booking.type],
+            ['Chi phí phụ', booking.extra_fee]
+        ].forEach(([label, val]) => {
+            infoHtml += `<div style="margin-bottom:4px;"><b>${label}:</b> ${val ?? ''}</div>`;
+        });
+        document.getElementById('bookingInfoFields').innerHTML = infoHtml;
+        // Đổ dữ liệu cũ vào form nếu có
+        document.getElementById('chargeForm').reset();
+        [
+            'receiving_price','delivery_price','lifting_fee','lifting_invoice','lifting_invoice_date','lifting_invoice_supplier','lowering_fee','lowering_invoice','lowering_invoice_date','lowering_invoice_supplier',
+            'thanh_ly','phu_thu','hoa_don','ngay_hd','cai_mep','phi_hun_trung','kiem_hoa','xin_so_cont','qua_tai','phi_van_chuyen','vat_8','ghi_chu'
+        ].forEach(field => {
+            const input = document.getElementById(field);
+            // List of numeric fields that should default to 0
+            const numericFields = [
+                'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
+            ];
+            const dateFields = [
+                'lifting_invoice_date','lowering_invoice_date','ngay_hd'
+            ];
+            if (booking[field] !== undefined && booking[field] !== null && booking[field] !== '') {
+                // If date field, format to yyyy-MM-dd for input type="date"
+                if (dateFields.includes(field)) {
+                    let dateVal = booking[field];
+                    if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
+                        // If already yyyy-MM-dd, use as is
+                        input.value = dateVal;
+                    } else {
+                        // Parse and adjust for timezone offset
+                        const d = new Date(dateVal);
+                        if (!isNaN(d)) {
+                            const tzOffset = d.getTimezoneOffset() * 60000;
+                            const localISO = new Date(d.getTime() - tzOffset).toISOString().slice(0,10);
+                            input.value = localISO;
+                        } else {
+                            input.value = '';
+                        }
+                    }
+                } else {
+                    input.value = booking[field];
+                }
+            } else if (numericFields.includes(field)) {
+                input.value = 0;
+            } else {
+                input.value = '';
+            }
+        });
+        // Lưu id booking đang sửa vào form
+        document.getElementById('chargeForm').setAttribute('data-id', id);
+    }
+    // Đóng modal tính phí
+    function closeChargeModal() {
+        document.getElementById('chargeModal').style.display = 'none';
+    }
+    // Đảm bảo nút đóng và click ngoài modal đều hoạt động
+    document.getElementById('closeChargeModal').onclick = closeChargeModal;
+    document.getElementById('chargeModal').onclick = function(e) {
+        if (e.target === this) closeChargeModal();
+    };
+
+    // Utility: format number with thousand separators and VNĐ
+    // (see above for new implementation)
+    function formatMoneyInput(value) {
+        if (value === '' || value === null || value === undefined) return '';
+        let num = value.toString().replace(/[^\d]/g, '');
+        if (!num) return '';
+        num = parseInt(num, 10);
+        if (isNaN(num)) return '';
+        return num.toLocaleString('vi-VN') + ' VNĐ';
+    }
+
+    // Utility: get raw number from formatted string
+    function parseMoneyInput(value) {
+        if (!value) return 0;
+        return parseInt(value.toString().replace(/[^\d]/g, ''), 10) || 0;
+    }
+
+    // Attach formatting to money fields in charge form
+    function setupMoneyInputFormatting() {
+        const moneyFields = [
+            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
+        ];
+        moneyFields.forEach(field => {
+            const input = document.getElementById(field);
+            if (!input) return;
+            // Format on input
+            input.addEventListener('input', function(e) {
+                const caret = input.selectionStart;
+                const raw = input.value.replace(/[^\d]/g, '');
+                if (raw === '') {
+                    input.value = '';
+                    return;
+                }
+                input.value = formatMoneyInput(raw);
+                // Try to keep caret at end
+                input.setSelectionRange(input.value.length, input.value.length);
+            });
+            // On focus, show only number
+            input.addEventListener('focus', function() {
+                const raw = input.value.replace(/[^\d]/g, '');
+                input.value = raw;
+            });
+            // On blur, format
+            input.addEventListener('blur', function() {
+                const raw = input.value.replace(/[^\d]/g, '');
+                input.value = formatMoneyInput(raw);
+            });
+            // Initial format if value exists
+            if (input.value && !isNaN(input.value)) {
+                input.value = formatMoneyInput(input.value);
+            }
+        });
+    }
+
+    // Call setup after DOMContentLoaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupMoneyInputFormatting);
+    } else {
+        setupMoneyInputFormatting();
+    }
+
+    // Patch submitChargeForm to send raw values
+    async function patchedSubmitChargeForm(e) {
+        e.preventDefault();
+        const id = this.getAttribute('data-id');
+        const booking = allBookingDetails.find(b => b.id == id);
+        const formData = {};
+        formData.transport_company_name = booking ? (booking.transport_companies || booking.transporter_name || '') : '';
+        formData.shipping_line = booking ? (booking.shipping_line || '') : '';
+        [
+            'receiving_price','delivery_price','lifting_fee','lifting_invoice','lifting_invoice_date','lifting_invoice_supplier','lowering_fee','lowering_invoice','lowering_invoice_date','lowering_invoice_supplier',
+            'thanh_ly','phu_thu','hoa_don','ngay_hd','cai_mep','phi_hun_trung','kiem_hoa','xin_so_cont','qua_tai','phi_van_chuyen','vat_8','ghi_chu'
+        ].forEach(field => {
+            const input = document.getElementById(field);
+            if (!input) return;
+            if ([
+                'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
+            ].includes(field)) {
+                formData[field] = parseMoneyInput(input.value);
+            } else {
+                formData[field] = input.value;
+            }
+        });
+        formData.charged = true;
+        try {
+            const res = await fetch(`http://localhost:3000/booking-details/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            if (!res.ok) throw new Error('Lỗi khi cập nhật thông tin tính phí');
+            closeChargeModal();
+            fetchBookingDetails();
+        } catch (err) {
+            alert('Lỗi khi lưu thông tin tính phí!');
+        }
+    }
+    document.getElementById('chargeForm').onsubmit = patchedSubmitChargeForm;
 });

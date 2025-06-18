@@ -547,3 +547,31 @@ input[type="text"], select {
     color: #1976d2;
     font-size: 1em;
 }
+
+/* Booking Detail Modal Responsive Grid */
+#detailModal .modal-content {
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+#detailFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+}
+#detailFields .detail-label {
+  font-weight: 600;
+  padding: 4px 8px 4px 0;
+  color: #222;
+  white-space: nowrap;
+}
+#detailFields .detail-value {
+  padding: 4px 0 4px 8px;
+  color: #333;
+  word-break: break-word;
+}
+@media (max-width: 600px) {
+  #detailFields {
+    grid-template-columns: 1fr;
+  }
+}

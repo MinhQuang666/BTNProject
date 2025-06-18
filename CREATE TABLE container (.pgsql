@@ -62,7 +62,6 @@ CREATE TABLE bookings (
     extra_fee VARCHAR(255), -- Chi phí phụ (ghi chú)
     CONSTRAINT fk_container_code FOREIGN KEY (container_code) REFERENCES containers(container_code)
 );
-CREATE UNIQUE INDEX unique_booking_seal_only ON bookings (seal);
 CREATE TABLE booking_details (
     id SERIAL PRIMARY KEY,
     booking_no VARCHAR(50),
