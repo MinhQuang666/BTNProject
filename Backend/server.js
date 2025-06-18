@@ -587,10 +587,10 @@ app.get('/bookings', async (req, res) => {
         `, [limit, offset]);
         const totalResult = await pool.query('SELECT COUNT(*) FROM bookings');
         const totalBookings = parseInt(totalResult.rows[0].count, 10);
-        // Chuyển pickup_date về dạng YYYY-MM-DD (chuỗi) để frontend không bị lệch múi giờ
+        // Chuyển pickup_date về dạng string gốc từ PostgreSQL (tránh lệch ngày do timezone)
         const bookings = (result.rows || []).map(row => ({
             ...row,
-            pickup_date: row.pickup_date ? row.pickup_date.toISOString().slice(0,10) : null
+            pickup_date: row.pickup_date ? String(row.pickup_date) : null
         }));
         res.json({
             bookings,

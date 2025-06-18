@@ -151,7 +151,6 @@ SELECT * FROM transporters;
 SELECT * FROM locations;
 SELECT * FROM container_owners;
 SELECT * FROM containers;
-SELECT * FROM container_transactions;
-SELECT * FROM bookings;
+SELECT * FROM container_t
 SELECT * FROM booking_details;
 SELECT * FROM xac_nhan;

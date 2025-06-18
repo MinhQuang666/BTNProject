@@ -442,6 +442,11 @@ function hideSpinner() {
 
 function formatDate(dateString) {
     if (!dateString) return '';
+    // Nếu là dạng YYYY-MM-DD thì trả về luôn, không parse Date để tránh lệch múi giờ
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        return dateString;
+    }
+    // Nếu là ISO string hoặc dạng khác thì parse như cũ (không cộng thêm ngày)
     const d = new Date(dateString);
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
