@@ -314,20 +314,24 @@ function renderBookingList() {
             <td>${booking.extra_fee || ''}</td>
             <td>${booking.invoice_company || ''}</td>
             <td>${booking.shipping_line || ''}</td>
-            <td>
-                <button class="send-to-detail-btn" data-id="${booking.id}">Chuyển sang tính phí</button>
-                <button onclick="deleteBooking(this)">Xóa</button>
+            <td style="padding:1;">
+                <div class="action-btn-group">
+                    <button class="update-booking-btn pro-btn pro-btn-edit" title="Cập nhật thông tin"><i class="fa fa-edit"></i> Cập nhật</button>
+                    <button class="send-to-detail-btn pro-btn pro-btn-fee" data-id="${booking.id}" title="Chuyển sang tính phí"><i class="fa fa-arrow-right"></i> Tính phí</button>
+                    <button class="delete-booking-btn pro-btn pro-btn-delete" title="Xóa booking"><i class="fa fa-trash"></i> Xóa</button>
+                </div>
             </td>
         `;
         tableBody.appendChild(newRow);
         // Gán sự kiện cho nút chuyển sang tính phí
         const sendBtn = newRow.querySelector('.send-to-detail-btn');
         const bookingId = booking.id;
-        sendBtn.textContent = `Chuyển sang tính phí`;
-        sendBtn.title = `ID: ${bookingId}`;
+        sendBtn.textContent = '';
+        sendBtn.innerHTML = '<i class="fa fa-arrow-right"></i> Tính phí';
+        sendBtn.title = `Chuyển sang tính phí (ID: ${bookingId})`;
         sendBtn.addEventListener('click', async function() {
             sendBtn.disabled = true;
-            sendBtn.textContent = 'Đang chuyển...';
+            sendBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang chuyển...';
             try {
                 const res = await fetch('http://localhost:3000/booking-details/from-booking', {
                     method: 'POST',
@@ -335,32 +339,37 @@ function renderBookingList() {
                     body: JSON.stringify({ id: bookingId })
                 });
                 if (res.ok) {
-                    sendBtn.textContent = 'Đã chuyển';
+                    sendBtn.innerHTML = '<i class="fa fa-check"></i> Đã chuyển';
                     sendBtn.style.background = '#4CAF50';
                     sendBtn.style.color = '#fff';
                     sendBtn.disabled = true;
                     showToast('Đã chuyển sang tính phí!', 'success');
                 } else {
                     const msg = await res.text();
-                    sendBtn.textContent = `Chuyển sang tính phí`;
+                    sendBtn.innerHTML = '<i class="fa fa-arrow-right"></i> Tính phí';
                     sendBtn.disabled = false;
                     showToast('Lỗi: ' + msg, 'error');
                 }
             } catch (err) {
-                sendBtn.textContent = `Chuyển sang tính phí `;
+                sendBtn.innerHTML = '<i class="fa fa-arrow-right"></i> Tính phí';
                 sendBtn.disabled = false;
                 showToast('Lỗi kết nối server!', 'error');
             }
         });
-        // Thêm nút Update bên cạnh nút Chuyển sang tính phí
-        const updateBtn = document.createElement('button');
-        updateBtn.textContent = 'Cập nhật';
-        updateBtn.className = 'update-booking-btn';
-        updateBtn.style.marginRight = '6px';
+        // Nút cập nhật
+        const updateBtn = newRow.querySelector('.update-booking-btn');
+        updateBtn.innerHTML = '<i class="fa fa-edit"></i> Cập nhật';
+        updateBtn.title = 'Cập nhật thông tin booking';
         updateBtn.addEventListener('click', function() {
             showEditBookingModal(booking);
         });
-        sendBtn.parentElement.insertBefore(updateBtn, sendBtn);
+        // Nút xóa
+        const deleteBtn = newRow.querySelector('.delete-booking-btn');
+        deleteBtn.innerHTML = '<i class="fa fa-trash"></i> Xóa';
+        deleteBtn.title = 'Xóa booking';
+        deleteBtn.onclick = function() {
+            deleteBooking(deleteBtn);
+        };
     });
     renderBookingPagination();
 }

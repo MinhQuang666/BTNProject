@@ -575,3 +575,91 @@ input[type="text"], select {
     grid-template-columns: 1fr;
   }
 }
+
+/* Nút thao tác chuyên nghiệp cho bảng booking */
+.pro-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 5px;
+    background: #2196F3;
+    color: #fff;
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+    box-shadow: 0 2px 8px rgba(33,150,243,0.08);
+    outline: none;
+}
+.pro-btn:hover {
+    background: #1769aa;
+    color: #fff;
+}
+.pro-btn:active {
+    background: #0d47a1;
+}
+.pro-btn[disabled], .pro-btn:disabled {
+    background: #bdbdbd;
+    color: #fff;
+    cursor: not-allowed;
+}
+.pro-btn .fa {
+    font-size: 16px;
+}
+
+/* Action button group styles */
+.action-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    justify-content: center;
+    width: 120px;
+    margin: 0 auto;
+}
+.pro-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 0 7px 0;
+    border: none;
+    border-radius: 5px;
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+    box-shadow: 0 2px 8px rgba(33,150,243,0.08);
+    outline: none;
+    justify-content: center;
+}
+.pro-btn-edit {
+    background: #1976d2 !important;
+    color: #fff !important;
+}
+.pro-btn-edit:hover {
+    background: #115293 !important;
+}
+.pro-btn-fee {
+    background: #43a047 !important;
+    color: #fff !important;
+}
+.pro-btn-fee:hover {
+    background: #2e7031 !important;
+}
+.pro-btn-delete {
+    background: #e53935 !important;
+    color: #fff !important;
+}
+.pro-btn-delete:hover {
+    background: #ab000d !important;
+}
+.pro-btn[disabled], .pro-btn:disabled {
+    background: #bdbdbd !important;
+    color: #fff !important;
+    cursor: not-allowed;
+}
+.pro-btn .fa {
+    font-size: 16px;
+}
