@@ -363,10 +363,19 @@ document.addEventListener('DOMContentLoaded', function() {
             ['id', 'ID']
         ];
         let html = '';
+        const numericFields = [
+            'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
+        ];
         Object.entries(booking).forEach(([key, value]) => {
             const label = fieldLabels.find(f => f[0] === key)?.[1] || key;
             let displayVal = value;
-            if (displayVal === undefined || displayVal === null || displayVal === '') {
+            if (numericFields.includes(key)) {
+                displayVal = formatMoneyDisplay(displayVal);
+            } else if (
+                ['pickup_date', 'lifting_invoice_date', 'lowering_invoice_date', 'ngay_hd'].includes(key) && value
+            ) {
+                displayVal = formatDate(value);
+            } else if (displayVal === undefined || displayVal === null || displayVal === '') {
                 displayVal = '<span style="color:#aaa;">(trống)</span>';
             }
             html += `<div class='detail-label'>${label}</div><div class='detail-value'>${displayVal}</div>`;
@@ -560,6 +569,10 @@ document.addEventListener('DOMContentLoaded', function() {
             let displayVal = value;
             if (numericFields.includes(key)) {
                 displayVal = formatMoneyDisplay(displayVal);
+            } else if (
+                ['pickup_date', 'lifting_invoice_date', 'lowering_invoice_date', 'ngay_hd'].includes(key) && value
+            ) {
+                displayVal = formatDate(value);
             } else if (displayVal === undefined || displayVal === null || displayVal === '') {
                 displayVal = '<span style="color:#aaa;">(trống)</span>';
             }
@@ -885,6 +898,10 @@ document.addEventListener('DOMContentLoaded', function() {
             let displayVal = value;
             if (numericFields.includes(key)) {
                 displayVal = formatMoneyDisplay(displayVal);
+            } else if (
+                ['pickup_date', 'lifting_invoice_date', 'lowering_invoice_date', 'ngay_hd'].includes(key) && value
+            ) {
+                displayVal = formatDate(value);
             } else if (displayVal === undefined || displayVal === null || displayVal === '') {
                 displayVal = '<span style="color:#aaa;">(trống)</span>';
             }

@@ -587,8 +587,13 @@ app.get('/bookings', async (req, res) => {
         `, [limit, offset]);
         const totalResult = await pool.query('SELECT COUNT(*) FROM bookings');
         const totalBookings = parseInt(totalResult.rows[0].count, 10);
+        // Chuyển pickup_date về dạng YYYY-MM-DD (chuỗi) để frontend không bị lệch múi giờ
+        const bookings = (result.rows || []).map(row => ({
+            ...row,
+            pickup_date: row.pickup_date ? row.pickup_date.toISOString().slice(0,10) : null
+        }));
         res.json({
-            bookings: result.rows || [],
+            bookings,
             totalBookings,
             totalPages: Math.ceil(totalBookings / limit),
             currentPage: parseInt(page, 10),
@@ -758,8 +763,16 @@ app.get('/booking-details', async (req, res) => {
             totalResult = await pool.query('SELECT COUNT(*) FROM booking_details');
         }
         const total = parseInt(totalResult.rows[0].count, 10);
+        // Chuyển pickup_date, lifting_invoice_date, lowering_invoice_date, ngay_hd về dạng YYYY-MM-DD nếu có
+        const bookingDetails = (result.rows || []).map(row => ({
+            ...row,
+            pickup_date: row.pickup_date ? row.pickup_date.toISOString().slice(0,10) : null,
+            lifting_invoice_date: row.lifting_invoice_date ? row.lifting_invoice_date.toISOString().slice(0,10) : null,
+            lowering_invoice_date: row.lowering_invoice_date ? row.lowering_invoice_date.toISOString().slice(0,10) : null,
+            ngay_hd: row.ngay_hd ? row.ngay_hd.toISOString().slice(0,10) : null
+        }));
         res.json({
-            bookingDetails: result.rows || [],
+            bookingDetails,
             total,
             totalPages: Math.ceil(total / limit),
             currentPage: page,
