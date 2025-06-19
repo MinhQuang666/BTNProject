@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS companies;
 DROP TABLE IF EXISTS transport_companies;
 DROP TABLE IF EXISTS booking_details;
 DROP TABLE IF EXISTS xac_nhan;
+DROP TABLE IF EXISTS trucks;
 
 
 CREATE TABLE companies (
@@ -34,12 +35,21 @@ CREATE TABLE containers (
     owner_code CHAR(3) REFERENCES container_owners(owner_code) -- Liên kết với bảng container_owners qua owner_code
 
 );
+
+CREATE TABLE trucks (
+    id SERIAL PRIMARY KEY,
+    license_plate VARCHAR(20) NOT NULL UNIQUE, -- Biển số xe
+    transporter_id VARCHAR(50) REFERENCES transporters(id) ON DELETE CASCADE, -- Nhà xe sở hữu
+    model VARCHAR(100), -- Model xe (tùy chọn)
+    driver_name VARCHAR(100), -- Tên tài xế (tùy chọn)
+    note TEXT -- Ghi chú thêm
+);
 CREATE TABLE container_transactions (
     id SERIAL PRIMARY KEY,
     container_id INT REFERENCES containers(id),
     company_id INT REFERENCES companies(id),
-
     transporter_id VARCHAR(50) REFERENCES transporters(id),
+    truck_id INT REFERENCES trucks(id), -- Liên kết với xe kéo
     pickup_location_id VARCHAR(50) REFERENCES locations(id),
     dropoff_location_id VARCHAR(50) REFERENCES locations(id),
     transaction_date DATE NOT NULL
@@ -146,6 +156,9 @@ CREATE TABLE xac_nhan (
     charged BOOLEAN
 );
 
+
+-- Mỗi container_transactions sẽ liên kết với 1 xe kéo (truck_id)
+
 SELECT * FROM companies;
 SELECT * FROM transporters;
 SELECT * FROM locations;
@@ -154,3 +167,4 @@ SELECT * FROM containers;
 SELECT * FROM container_t
 SELECT * FROM booking_details;
 SELECT * FROM xac_nhan;
+SELECT * FROM trucks;

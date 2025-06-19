@@ -525,11 +525,15 @@ function showEditBookingModal(booking) {
                 </div>
                 <div class="form-group">
                     <label for="edit-company">Công ty:</label>
-                    <input type="text" id="edit-company" name="company_name" value="${booking.company_name||''}" required>
+                    <select id="edit-company" name="company_name" required style="width:100%">
+                        <option value="${booking.company_name||''}">${booking.company_name||'-- Chọn công ty --'}</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="edit-transporter">Nhà xe:</label>
-                    <input type="text" id="edit-transporter" name="transporter_name" value="${booking.transporter_name||''}" required>
+                    <select id="edit-transporter" name="transporter_name" required style="width:100%">
+                        <option value="${booking.transporter_name||''}">${booking.transporter_name||'-- Chọn nhà xe --'}</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="edit-bookingNo">BK No:</label>
@@ -631,4 +635,61 @@ function showEditBookingModal(booking) {
             showToast('Lỗi kết nối server!', 'error');
         }
     };
+    // Sau khi render form cập nhật, tự động load danh sách công ty và nhà xe, chọn đúng giá trị hiện tại
+    setTimeout(async () => {
+        // Công ty
+        const select = modal.querySelector('#edit-company');
+        if (select) {
+            const currentValue = booking.company_name || '';
+            try {
+                const response = await fetch('http://localhost:3000/companies?page=1');
+                if (response.ok) {
+                    const data = await response.json();
+                    const companies = data.companies || [];
+                    select.innerHTML = '<option value="">-- Chọn công ty --</option>';
+                    companies.forEach(company => {
+                        const option = document.createElement('option');
+                        option.value = company.name;
+                        option.textContent = company.name;
+                        if (company.name === currentValue) option.selected = true;
+                        select.appendChild(option);
+                    });
+                    if (currentValue && !companies.some(c => c.name === currentValue)) {
+                        const opt = document.createElement('option');
+                        opt.value = currentValue;
+                        opt.textContent = currentValue + ' (đã lưu)';
+                        opt.selected = true;
+                        select.insertBefore(opt, select.firstChild);
+                    }
+                }
+            } catch (err) {}
+        }
+        // Nhà xe
+        const selectTransporter = modal.querySelector('#edit-transporter');
+        if (selectTransporter) {
+            const currentValue = booking.transporter_name || '';
+            try {
+                const response = await fetch('http://localhost:3000/transporters?page=1');
+                if (response.ok) {
+                    const data = await response.json();
+                    const transporters = data.transporters || [];
+                    selectTransporter.innerHTML = '<option value="">-- Chọn nhà xe --</option>';
+                    transporters.forEach(trans => {
+                        const option = document.createElement('option');
+                        option.value = trans.name;
+                        option.textContent = trans.name;
+                        if (trans.name === currentValue) option.selected = true;
+                        selectTransporter.appendChild(option);
+                    });
+                    if (currentValue && !transporters.some(t => t.name === currentValue)) {
+                        const opt = document.createElement('option');
+                        opt.value = currentValue;
+                        opt.textContent = currentValue + ' (đã lưu)';
+                        opt.selected = true;
+                        selectTransporter.insertBefore(opt, selectTransporter.firstChild);
+                    }
+                }
+            } catch (err) {}
+        }
+    }, 0);
 }
