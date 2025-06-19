@@ -78,9 +78,8 @@ document.getElementById('bookingForm').addEventListener('submit', async function
 
 function deleteBooking(button) {
     if (!confirm('Bạn có chắc chắn muốn xóa booking này không?')) return;
-    const row = button.parentElement.parentElement;
-    // Lấy id booking từ thuộc tính data-id hoặc từ dữ liệu đã fetch
-    const bookingId = row.getAttribute('data-id');
+    const row = button.closest('tr'); // Tìm đúng thẻ <tr> chứa button
+    const bookingId = row ? row.getAttribute('data-id') : null;
     if (bookingId) {
         fetch(`http://localhost:3000/bookings/${encodeURIComponent(bookingId)}`, {
             method: 'DELETE',
@@ -99,49 +98,7 @@ function deleteBooking(button) {
             console.error('Lỗi khi xóa booking:', err);
         });
     } else {
-        // Fallback: xóa theo nhiều trường như cũ (nếu chưa có id)
-        // Lấy đúng 15 cột dữ liệu đầu tiên, không tính cột Hành động (nút)
-        const dataCells = Array.from(row.children).slice(0, 15);
-        // Chỉ báo lỗi nếu thực sự thiếu cột (ít hơn 15 cột), còn nếu đủ cột thì cho phép xóa dù giá trị rỗng
-        if (dataCells.length < 15) {
-            showToast('Không thể xác định đủ thông tin booking để xóa!', 'error');
-            return;
-        }
-        const booking = {
-            pickup_date: dataCells[0].textContent,
-            company_name: dataCells[1].textContent,
-            transporter_name: dataCells[2].textContent,
-            booking_no: dataCells[3].textContent,
-            container_code: dataCells[4].textContent,
-            seal: dataCells[5].textContent,
-            type: dataCells[6].textContent === 'Nhập' ? 'import' : (dataCells[6].textContent === 'Xuất' ? 'export' : dataCells[6].textContent),
-            quantity: dataCells[7].textContent,
-            size: dataCells[8].textContent,
-            pickup_location: dataCells[9].textContent,
-            dropoff_location: dataCells[10].textContent,
-            extra_fee: dataCells[11].textContent,
-            invoice_company: dataCells[12].textContent,
-            shipping_line: dataCells[13].textContent,
-            trucks_No: dataCells[14].textContent || null // Cho phép rỗng
-        };
-        fetch('http://localhost:3000/bookings', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(booking)
-        })
-        .then(response => {
-            if (response.ok) {
-                showToast('Đã xóa booking!', 'success');
-                fetchBookings();
-                localStorage.setItem('bookingListUpdated', Date.now().toString());
-            } else {
-                response.text().then(text => showToast('Lỗi: ' + text, 'error'));
-            }
-        })
-        .catch(err => {
-            showToast('Lỗi kết nối server!', 'error');
-            console.error('Lỗi khi xóa booking:', err);
-        });
+        showToast('Không tìm thấy id booking để xóa!', 'error');
     }
 }
 
