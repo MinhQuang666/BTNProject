@@ -736,7 +736,7 @@ app.get('/booking-details', async (req, res) => {
         let result, totalResult;
         if (search) {
             result = await pool.query(
-                `SELECT id, booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, \
+                `SELECT id, booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, seal, trucks_No, quantity, size, pickup_location, dropoff_location, type, extra_fee, \
                 receiving_price, delivery_price, lifting_fee, lowering_fee, \
                 lifting_invoice, lifting_invoice_date, lifting_invoice_supplier, lowering_invoice, lowering_invoice_date, lowering_invoice_supplier, \
                 thanh_ly, phu_thu, hoa_don, ngay_hd, cai_mep, phi_hun_trung, kiem_hoa, xin_so_cont, qua_tai, phi_van_chuyen, vat_8, ghi_chu, charged \
@@ -746,7 +746,7 @@ app.get('/booking-details', async (req, res) => {
             totalResult = await pool.query('SELECT COUNT(*) FROM booking_details WHERE booking_no ILIKE $1', [`%${search}%`]);
         } else {
             result = await pool.query(
-                `SELECT id, booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, \
+                `SELECT id, booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, seal, trucks_No, quantity, size, pickup_location, dropoff_location, type, extra_fee, \
                 receiving_price, delivery_price, lifting_fee, lowering_fee, \
                 lifting_invoice, lifting_invoice_date, lifting_invoice_supplier, lowering_invoice, lowering_invoice_date, lowering_invoice_supplier, \
                 thanh_ly, phu_thu, hoa_don, ngay_hd, cai_mep, phi_hun_trung, kiem_hoa, xin_so_cont, qua_tai, phi_van_chuyen, vat_8, ghi_chu, charged \
@@ -969,10 +969,11 @@ app.post('/booking-details/from-booking', async (req, res) => {
                 return res.status(409).send('Booking đã tồn tại trong bảng booking_details.');
             }
             // Thêm vào booking_details (bổ sung seal, trucks_No)
+            const trucksNoValue = b.trucks_no || b.trucks_No || '';
             await pool.query(
                 `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee, trucks_No, charged)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, FALSE)` ,
-                [b.booking_no, b.pickup_date, b.company_name, b.transporter_name, b.invoice_company, b.shipping_line, b.container_code, b.seal, b.quantity, b.size, b.pickup_location, b.dropoff_location, b.type, b.extra_fee, b.trucks_No || '']
+                [b.booking_no, b.pickup_date, b.company_name, b.transporter_name, b.invoice_company, b.shipping_line, b.container_code, b.seal, b.quantity, b.size, b.pickup_location, b.dropoff_location, b.type, b.extra_fee, trucksNoValue]
             );
             return res.status(201).send('Đã chuyển sang bảng booking_details.');
         } catch (err) {
@@ -1003,10 +1004,11 @@ app.post('/booking-details/from-booking', async (req, res) => {
             return res.status(409).send('Booking đã tồn tại trong bảng booking_details.');
         }
         // Thêm vào booking_details (bổ sung seal, trucks_No)
+        const trucksNoValue2 = b.trucks_no || b.trucks_No || '';
         await pool.query(
             `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee, trucks_No, charged)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, FALSE)` ,
-            [b.booking_no, b.pickup_date, b.company_name, b.transporter_name, b.invoice_company, b.shipping_line, b.container_code, b.seal, b.quantity, b.size, b.pickup_location, b.dropoff_location, b.type, b.extra_fee, b.trucks_No || '']
+            [b.booking_no, b.pickup_date, b.company_name, b.transporter_name, b.invoice_company, b.shipping_line, b.container_code, b.seal, b.quantity, b.size, b.pickup_location, b.dropoff_location, b.type, b.extra_fee, trucksNoValue2]
         );
         res.status(201).send('Đã chuyển sang bảng booking_details.');
     } catch (err) {

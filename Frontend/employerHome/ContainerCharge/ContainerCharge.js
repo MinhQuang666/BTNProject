@@ -185,7 +185,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('http://localhost:3000/booking-details?page=1');
             if (!response.ok) throw new Error('Không thể lấy danh sách booking_details');
             const data = await response.json();
-            allBookingDetails = data.bookingDetails || [];
+            // Map lại key trucks_no => trucks_No và seal (nếu có seal là undefined)
+            allBookingDetails = (data.bookingDetails || []).map(bd => {
+                if (bd.trucks_no && !bd.trucks_No) {
+                    bd.trucks_No = bd.trucks_no;
+                }
+                if (bd.seal === undefined && bd.seal !== null && bd.seal !== '') {
+                    // Nếu backend trả về seal là undefined, thử lấy từ bd["seal"] hoặc bd["SEAL"]
+                    bd.seal = bd["seal"] || bd["SEAL"] || '';
+                }
+                return bd;
+            });
             updateSummaryPanel();
             renderBookingList();
         } catch (err) {
@@ -334,6 +344,8 @@ document.addEventListener('DOMContentLoaded', function() {
             ['invoice_company', 'Công ty làm Hoá Đơn'],
             ['shipping_line', 'Hãng tàu'],
             ['container_code', 'Mã số Container'],
+            ['seal', 'Seal'],
+            ['trucks_No', 'Số xe'],
             ['quantity', 'Số lượng'],
             ['size', 'Kích cỡ'],
             ['pickup_location', 'Nơi lấy Container'],
@@ -368,8 +380,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const numericFields = [
             'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
         ];
-        Object.entries(booking).forEach(([key, value]) => {
-            const label = fieldLabels.find(f => f[0] === key)?.[1] || key;
+        fieldLabels.forEach(([key, label]) => {
+            let value = booking[key];
+            if (key === 'trucks_No' && !value) value = booking.trucks_no || '';
+            if (key === 'seal' && !value) value = booking.seal || '';
             let displayVal = value;
             if (numericFields.includes(key)) {
                 displayVal = formatMoneyDisplay(displayVal);
@@ -534,6 +548,8 @@ document.addEventListener('DOMContentLoaded', function() {
             ['invoice_company', 'Công ty làm Hoá Đơn'],
             ['shipping_line', 'Hãng tàu'],
             ['container_code', 'Mã số Container'],
+            ['seal', 'Seal'],
+            ['trucks_No', 'Số xe'],
             ['quantity', 'Số lượng'],
             ['size', 'Kích cỡ'],
             ['pickup_location', 'Nơi lấy Container'],
@@ -568,8 +584,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const numericFields = [
             'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
         ];
-        Object.entries(booking).forEach(([key, value]) => {
-            const label = fieldLabels.find(f => f[0] === key)?.[1] || key;
+        fieldLabels.forEach(([key, label]) => {
+            let value = booking[key];
+            if (key === 'trucks_No' && !value) value = booking.trucks_no || '';
+            if (key === 'seal' && !value) value = booking.seal || '';
             let displayVal = value;
             if (numericFields.includes(key)) {
                 displayVal = formatMoneyDisplay(displayVal);
@@ -865,6 +883,8 @@ document.addEventListener('DOMContentLoaded', function() {
             ['invoice_company', 'Công ty làm Hoá Đơn'],
             ['shipping_line', 'Hãng tàu'],
             ['container_code', 'Mã số Container'],
+            ['seal', 'Seal'],
+            ['trucks_No', 'Số xe'],
             ['quantity', 'Số lượng'],
             ['size', 'Kích cỡ'],
             ['pickup_location', 'Nơi lấy Container'],
@@ -899,8 +919,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const numericFields = [
             'receiving_price','delivery_price','lifting_fee','lowering_fee','phu_thu','phi_hun_trung','kiem_hoa','qua_tai','phi_van_chuyen','vat_8'
         ];
-        Object.entries(booking).forEach(([key, value]) => {
-            const label = fieldLabels.find(f => f[0] === key)?.[1] || key;
+        fieldLabels.forEach(([key, label]) => {
+            let value = booking[key];
+            if (key === 'trucks_No' && !value) value = booking.trucks_no || '';
+            if (key === 'seal' && !value) value = booking.seal || '';
             let displayVal = value;
             if (numericFields.includes(key)) {
                 displayVal = formatMoneyDisplay(displayVal);
