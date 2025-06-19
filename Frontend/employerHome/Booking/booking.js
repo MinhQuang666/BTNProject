@@ -105,6 +105,8 @@ function deleteBooking(button) {
 function showBookingForm() {
     const bookingForm = document.getElementById('draggableContainer');
     bookingForm.style.display = 'block'; // Hiển thị bảng nhập liệu
+    const trucksNoSelect = document.getElementById('trucks_No');
+    if (trucksNoSelect) trucksNoSelect.innerHTML = '<option value="">-- Chọn số xe --</option>';
 }
 
 function hideBookingForm() {
@@ -558,7 +560,9 @@ function showEditBookingModal(booking) {
                 </div>
                 <div class="form-group">
                     <label for="trucks_No">Số xe:</label>
-                    <input type="text" id="trucks_No" name="trucks_No" value="${booking.trucks_No || booking.trucks_no || ''}">
+                    <select id="trucks_No" name="trucks_No" required style="width:100%">
+                        <option value="">-- Chọn số xe --</option>
+                    </select>
                 </div>
             </div>
             <div class="form-buttons">
@@ -666,4 +670,45 @@ function showEditBookingModal(booking) {
             } catch (err) {}
         }
     }, 0);
+}
+
+// --- Dynamic trucks_No select logic theo Nhà xe ---
+async function loadTrucksByTransporterId(transporterId, selectedTrucksNo = '') {
+    const trucksNoSelect = document.getElementById('trucks_No');
+    if (!transporterId) {
+        trucksNoSelect.innerHTML = '<option value="">-- Chọn số xe --</option>';
+        return;
+    }
+    try {
+        const res = await fetch(`http://localhost:3000/trucks?transporter_id=${encodeURIComponent(transporterId)}`);
+        if (res.ok) {
+            const trucks = await res.json();
+            let options = '<option value="">-- Chọn số xe --</option>';
+            trucks.forEach(truck => {
+                options += `<option value="${truck.license_plate}">${truck.license_plate}</option>`;
+            });
+            trucksNoSelect.innerHTML = options;
+            if (selectedTrucksNo) trucksNoSelect.value = selectedTrucksNo;
+        } else {
+            trucksNoSelect.innerHTML = '<option value="">-- Chọn số xe --</option>';
+        }
+    } catch (err) {
+        trucksNoSelect.innerHTML = '<option value="">-- Chọn số xe --</option>';
+    }
+}
+
+const transporterSelect = document.getElementById('transporter');
+if (transporterSelect) {
+    transporterSelect.addEventListener('change', function() {
+        const transporterId = this.value;
+        loadTrucksByTransporterId(transporterId, '');
+    });
+}
+
+// Khi mở form booking mới, luôn reset trường Số xe về option mặc định
+function showBookingForm() {
+    const bookingForm = document.getElementById('draggableContainer');
+    bookingForm.style.display = 'block'; // Hiển thị bảng nhập liệu
+    const trucksNoSelect = document.getElementById('trucks_No');
+    if (trucksNoSelect) trucksNoSelect.innerHTML = '<option value="">-- Chọn số xe --</option>';
 }
