@@ -258,7 +258,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${displayTransportCompany}</td>
                 <td>${booking.booking_no || ''}</td>
                 <td>${booking.container_code || ''}</td>
-                <td>${statusHtml}</td>
+                <td>${booking.seal || ''}</td>
+                <td>${booking.trucks_No || booking.trucks_no || ''}</td>
                 <td>${booking.type === 'import' ? 'Nhập' : booking.type === 'export' ? 'Xuất' : (booking.type || '')}</td>
                 <td>${booking.quantity || ''}</td>
                 <td>${booking.size || ''}</td>
@@ -267,6 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${booking.extra_fee || ''}</td>
                 <td>${booking.invoice_company || ''}</td>
                 <td>${booking.shipping_line || ''}</td>
+                <td>${statusHtml}</td>
                 <td style="text-align:center;">
                     <button class="detail-btn action-btn" data-id="${booking.id}">Chi tiết</button>
                     <button class="charge-btn action-btn" data-id="${booking.id}" style="background:${isCharged ? '#2196F3' : '#FFC107'};color:${isCharged ? '#fff' : '#333'};font-weight:600;">${isCharged ? 'Sửa' : 'Tính phí'}</button>
@@ -456,7 +458,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${displayTransportCompany}</td>
                 <td>${booking.booking_no || ''}</td>
                 <td>${booking.container_code || ''}</td>
-                <td>${statusHtml}</td>
+                <td>${booking.seal || ''}</td>
+                <td>${booking.trucks_No || booking.trucks_no || ''}</td>
                 <td>${booking.type === 'import' ? 'Nhập' : booking.type === 'export' ? 'Xuất' : (booking.type || '')}</td>
                 <td>${booking.quantity || ''}</td>
                 <td>${booking.size || ''}</td>
@@ -465,6 +468,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${booking.extra_fee || ''}</td>
                 <td>${booking.invoice_company || ''}</td>
                 <td>${booking.shipping_line || ''}</td>
+                <td>${statusHtml}</td>
                 <td style="text-align:center;">
                     <button class="detail-btn action-btn" data-id="${booking.id}">Chi tiết</button>
                     <button class="charge-btn action-btn" data-id="${booking.id}" style="background:${isCharged ? '#2196F3' : '#FFC107'};color:${isCharged ? '#fff' : '#333'};font-weight:600;">${isCharged ? 'Sửa' : 'Tính phí'}</button>
@@ -801,7 +805,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${displayTransportCompany}</td>
                 <td>${booking.booking_no || ''}</td>
                 <td>${booking.container_code || ''}</td>
-                <td>${statusHtml}</td>
+                <td>${booking.seal || ''}</td>
+                <td>${booking.trucks_No || booking.trucks_no || ''}</td>
                 <td>${booking.type === 'import' ? 'Nhập' : booking.type === 'export' ? 'Xuất' : (booking.type || '')}</td>
                 <td>${booking.quantity || ''}</td>
                 <td>${booking.size || ''}</td>
@@ -810,6 +815,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${booking.extra_fee || ''}</td>
                 <td>${booking.invoice_company || ''}</td>
                 <td>${booking.shipping_line || ''}</td>
+                <td>${statusHtml}</td>
                 <td style="text-align:center;">
                     <button class="detail-btn action-btn" data-id="${booking.id}">Chi tiết</button>
                     <button class="charge-btn action-btn" data-id="${booking.id}" style="background:${isCharged ? '#2196F3' : '#FFC107'};color:${isCharged ? '#fff' : '#333'};font-weight:600;">${isCharged ? 'Sửa' : 'Tính phí'}</button>

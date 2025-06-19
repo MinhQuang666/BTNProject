@@ -938,6 +938,18 @@ app.get('/transport_companies', async (req, res) => {
 app.post('/booking-details/from-booking', async (req, res) => {
     console.log('POST /booking-details/from-booking', req.body); // Thêm log để debug
     const { id, booking_no, pickup_date } = req.body;
+    // Helper: kiểm tra các trường NOT NULL
+    function checkNotNullFields(b) {
+        const required = [
+            'pickup_date', 'company_name', 'transporter_name', 'container_code', 'seal', 'quantity', 'size'
+        ];
+        for (const key of required) {
+            if (!b[key] || b[key] === '') {
+                return key;
+            }
+        }
+        return null;
+    }
     if (id) {
         // Nếu có id, lấy booking theo id
         try {
@@ -946,16 +958,21 @@ app.post('/booking-details/from-booking', async (req, res) => {
                 return res.status(404).send('Không tìm thấy booking với id này.');
             }
             const b = result.rows[0];
+            // Kiểm tra đủ trường NOT NULL
+            const missingField = checkNotNullFields(b);
+            if (missingField) {
+                return res.status(400).send(`Thiếu trường bắt buộc: ${missingField}`);
+            }
             // Kiểm tra đã có trong booking_details chưa (theo booking_no + container_code + pickup_date)
             const exists = await pool.query('SELECT * FROM booking_details WHERE booking_no = $1 AND container_code = $2 AND pickup_date = $3', [b.booking_no, b.container_code, b.pickup_date]);
             if (exists.rows.length > 0) {
                 return res.status(409).send('Booking đã tồn tại trong bảng booking_details.');
             }
-            // Thêm vào booking_details
+            // Thêm vào booking_details (bổ sung seal, trucks_No)
             await pool.query(
-                `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, charged)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, FALSE)` ,
-                [b.booking_no, b.pickup_date, b.company_name, b.transporter_name, b.invoice_company, b.shipping_line, b.container_code, b.quantity, b.size, b.pickup_location, b.dropoff_location, b.type, b.extra_fee]
+                `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee, trucks_No, charged)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, FALSE)` ,
+                [b.booking_no, b.pickup_date, b.company_name, b.transporter_name, b.invoice_company, b.shipping_line, b.container_code, b.seal, b.quantity, b.size, b.pickup_location, b.dropoff_location, b.type, b.extra_fee, b.trucks_No || '']
             );
             return res.status(201).send('Đã chuyển sang bảng booking_details.');
         } catch (err) {
@@ -975,16 +992,21 @@ app.post('/booking-details/from-booking', async (req, res) => {
         }
         // Nếu có nhiều booking trùng booking_no, lấy bản gần nhất (hoặc bản đầu tiên)
         const b = result.rows[0];
+        // Kiểm tra đủ trường NOT NULL
+        const missingField = checkNotNullFields(b);
+        if (missingField) {
+            return res.status(400).send(`Thiếu trường bắt buộc: ${missingField}`);
+        }
         // Kiểm tra đã có trong booking_details chưa (theo booking_no + container_code + pickup_date)
         const exists = await pool.query('SELECT * FROM booking_details WHERE booking_no = $1 AND container_code = $2 AND pickup_date = $3', [b.booking_no, b.container_code, b.pickup_date]);
         if (exists.rows.length > 0) {
             return res.status(409).send('Booking đã tồn tại trong bảng booking_details.');
         }
-        // Thêm vào booking_details
+        // Thêm vào booking_details (bổ sung seal, trucks_No)
         await pool.query(
-            `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, quantity, size, pickup_location, dropoff_location, type, extra_fee, charged)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, FALSE)` ,
-            [b.booking_no, b.pickup_date, b.company_name, b.transporter_name, b.invoice_company, b.shipping_line, b.container_code, b.quantity, b.size, b.pickup_location, b.dropoff_location, b.type, b.extra_fee]
+            `INSERT INTO booking_details (booking_no, pickup_date, company_name, transporter_name, invoice_company, shipping_line, container_code, seal, quantity, size, pickup_location, dropoff_location, type, extra_fee, trucks_No, charged)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, FALSE)` ,
+            [b.booking_no, b.pickup_date, b.company_name, b.transporter_name, b.invoice_company, b.shipping_line, b.container_code, b.seal, b.quantity, b.size, b.pickup_location, b.dropoff_location, b.type, b.extra_fee, b.trucks_No || '']
         );
         res.status(201).send('Đã chuyển sang bảng booking_details.');
     } catch (err) {
