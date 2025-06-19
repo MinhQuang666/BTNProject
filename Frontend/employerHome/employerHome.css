@@ -197,7 +197,6 @@ input[type="text"], select {
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
 }
 
 /* Nút Booking mới */

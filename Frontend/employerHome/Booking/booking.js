@@ -38,7 +38,7 @@ document.getElementById('bookingForm').addEventListener('submit', async function
 
     // Gọi API backend để lưu booking
     try {
-        showSpinner();
+        // Thêm trucks_No vào body khi gọi API
         const response = await fetch('http://localhost:3000/bookings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -100,19 +100,29 @@ function deleteBooking(button) {
         });
     } else {
         // Fallback: xóa theo nhiều trường như cũ (nếu chưa có id)
+        // Lấy đúng 15 cột dữ liệu đầu tiên, không tính cột Hành động (nút)
+        const dataCells = Array.from(row.children).slice(0, 15);
+        // Chỉ báo lỗi nếu thực sự thiếu cột (ít hơn 15 cột), còn nếu đủ cột thì cho phép xóa dù giá trị rỗng
+        if (dataCells.length < 15) {
+            showToast('Không thể xác định đủ thông tin booking để xóa!', 'error');
+            return;
+        }
         const booking = {
-            pickup_date: row.children[0].textContent,
-            company_name: row.children[1].textContent,
-            transporter_name: row.children[2].textContent,
-            booking_no: row.children[3].textContent,
-            container_code: row.children[4].textContent,
-            seal: row.children[5].textContent,
-            type: row.children[6].textContent === 'Nhập' ? 'import' : (row.children[6].textContent === 'Xuất' ? 'export' : row.children[6].textContent),
-            quantity: row.children[7].textContent,
-            size: row.children[8].textContent,
-            pickup_location: row.children[9].textContent,
-            dropoff_location: row.children[10].textContent,
-            extra_fee: row.children[11].textContent
+            pickup_date: dataCells[0].textContent,
+            company_name: dataCells[1].textContent,
+            transporter_name: dataCells[2].textContent,
+            booking_no: dataCells[3].textContent,
+            container_code: dataCells[4].textContent,
+            seal: dataCells[5].textContent,
+            type: dataCells[6].textContent === 'Nhập' ? 'import' : (dataCells[6].textContent === 'Xuất' ? 'export' : dataCells[6].textContent),
+            quantity: dataCells[7].textContent,
+            size: dataCells[8].textContent,
+            pickup_location: dataCells[9].textContent,
+            dropoff_location: dataCells[10].textContent,
+            extra_fee: dataCells[11].textContent,
+            invoice_company: dataCells[12].textContent,
+            shipping_line: dataCells[13].textContent,
+            trucks_No: dataCells[14].textContent || null // Cho phép rỗng
         };
         fetch('http://localhost:3000/bookings', {
             method: 'DELETE',
@@ -299,6 +309,8 @@ function renderBookingList() {
     pageBookings.forEach(booking => {
         const newRow = document.createElement('tr');
         newRow.setAttribute('data-id', booking.id); // Gán id SERIAL vào mỗi dòng
+        // Lấy số xe từ trucks_No hoặc trucks_no
+        const trucksNo = booking.trucks_No || booking.trucks_no || '';
         newRow.innerHTML = `
             <td>${formatDate(booking.pickup_date) || ''}</td>
             <td>${booking.company_name || ''}</td>
@@ -314,6 +326,7 @@ function renderBookingList() {
             <td>${booking.extra_fee || ''}</td>
             <td>${booking.invoice_company || ''}</td>
             <td>${booking.shipping_line || ''}</td>
+            <td>${trucksNo}</td>
             <td style="padding:1;">
                 <div class="action-btn-group">
                     <button class="update-booking-btn pro-btn pro-btn-edit" title="Cập nhật thông tin"><i class="fa fa-edit"></i> Cập nhật</button>
@@ -585,6 +598,10 @@ function showEditBookingModal(booking) {
                 <div class="form-group">
                     <label for="edit-shippingLine">Hãng tàu:</label>
                     <input type="text" id="edit-shippingLine" name="shipping_line" value="${booking.shipping_line||''}">
+                </div>
+                <div class="form-group">
+                    <label for="trucks_No">Số xe:</label>
+                    <input type="text" id="trucks_No" name="trucks_No" value="${booking.trucks_No || booking.trucks_no || ''}">
                 </div>
             </div>
             <div class="form-buttons">

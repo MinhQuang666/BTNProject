@@ -34,7 +34,6 @@
         <div id="bookingListContainer">
             <h2>Danh sách Booking</h2>
             <button id="refreshBookingBtn" style="margin-bottom:10px; background:#2196F3; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-weight:500; cursor:pointer;">Làm mới dữ liệu</button>
-            <button id="toggleActionColBtn" style="margin-bottom:10px; background:#FF9800; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-weight:500; cursor:pointer;">Hiện cột Hành động</button>
             <table id="bookingList">
                 <caption>
                     <button id="newBookingButton" class="btn btn-primary" onclick="showBookingForm()">+ Booking mới</button>
@@ -55,6 +54,7 @@
                         <th>Chi phí phụ</th>
                         <th>Công ty làm Hoá Đơn</th>
                         <th>Hãng tàu</th>
+                        <th>Số xe</th>
                         <th id="actionHeader">Hành động</th>
                     </tr>
                     <tr id="filterRow">
@@ -72,6 +72,7 @@
                         <th><input type="text" id="filter-extra_fee" style="width:100%"></th>
                         <th><input type="text" id="filter-invoice_company" style="width:100%" placeholder="Công ty làm Hoá Đơn"></th>
                         <th><input type="text" id="filter-shipping_line" style="width:100%" placeholder="Hãng tàu"></th>
+                        <th><input type="text" id="filter-trucks_No" style="width:100%" placeholder="Số xe"></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -82,7 +83,7 @@
         </div>
         <main id="main-container"></main>
         <!-- Bảng nhập Booking -->
-        <div id="draggableContainer" class="container" style="display: none; max-width: 520px; width: 95vw; max-height: 90vh; box-shadow: 0 2px 16px rgba(0,0,0,0.18); border-radius: 10px;">
+        <div id="draggableContainer" class="container" style="display: none; max-width: 500px; width: 95vw; max-height: 95vh; box-shadow: 0 2px 16px rgba(0,0,0,0.18); border-radius: 10px;">
             <h1 style="font-size: 1.3rem;">Nhập Thông Tin Booking</h1>
             <form id="bookingForm" autocomplete="off" style="max-height: 85vh;">
                 <div class="form-grid">
@@ -155,6 +156,10 @@
                         <label for="shippingLine">Hãng tàu:</label>
                         <input type="text" id="shippingLine" name="shippingLine" placeholder="Hãng tàu">
                     </div>
+                    <div class="form-group">
+                        <label for="trucks_No">TrucksNo</label>
+                        <input type="text" id="trucks_No" name="trucks_No" placeholder="Nhập số xe hoặc mã xe kéo">
+                    </div>
                 </div>
                 <div class="form-buttons">
                     <button type="submit" class="btn btn-success">Lưu</button>
@@ -189,22 +194,6 @@ document.getElementById('bookingForm').addEventListener('submit', function(e) {
     // ...existing code for submit...
 });
 
-document.getElementById('toggleActionColBtn').addEventListener('click', function() {
-    const table = document.getElementById('bookingList');
-    const actionHeader = document.getElementById('actionHeader');
-    const rows = table.querySelectorAll('tbody tr');
-    const show = actionHeader.style.display === 'none';
-    actionHeader.style.display = show ? '' : 'none';
-    // Hiện/ẩn từng ô hành động trong tbody
-    rows.forEach(row => {
-        if (row.children.length > 12) {
-            row.children[12].style.display = show ? '' : 'none';
-        }
-    });
-    // Đổi text nút
-    this.textContent = show ? 'Ẩn cột Hành động' : 'Hiện cột Hành động';
-});
-
 function showToast(msg) {
     var toast = document.getElementById('toast');
     toast.innerText = msg;
@@ -232,6 +221,7 @@ function renderBookingList() {
             <td>${booking.extra_fee || ''}</td>
             <td>${booking.invoice_company || ''}</td>
             <td>${booking.shipping_line || ''}</td>
+            <td>${booking.trucks_No || ''}</td>
             <td><!-- Dữ liệu sẽ được thêm vào đây --></td>
         `;
         tableBody.appendChild(newRow);
@@ -241,7 +231,7 @@ function renderBookingList() {
 
 // Tích hợp Select2 cho select công ty (form)
 $('#company').select2({
-    width: '100%',
+    width: '80%',
     placeholder: '-- Chọn công ty --',
     allowClear: true,
     minimumResultsForSearch: 0, // Luôn hiện thanh tìm kiếm
