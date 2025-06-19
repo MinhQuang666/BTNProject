@@ -557,9 +557,7 @@ function showEditBookingModal(booking) {
                 </div>
                 <div class="form-group">
                     <label for="trucks_No">Số xe:</label>
-                    <select id="trucks_No" name="trucks_No" required style="width:100%">
-                        <option value="">-- Chọn số xe --</option>
-                    </select>
+                    <input type="text" id="trucks_No" name="trucks_No" value="${booking.trucks_No || booking.trucks_no || ''}">
                 </div>
             </div>
             <div class="form-buttons">
@@ -583,6 +581,12 @@ function showEditBookingModal(booking) {
         const formData = new FormData(this);
         const data = {};
         for (let [k, v] of formData.entries()) data[k] = v;
+        // Đảm bảo lấy đúng tên nhà xe
+        const transporterSelect = this.querySelector('#edit-transporter');
+        if (transporterSelect) {
+            const selectedOption = transporterSelect.options[transporterSelect.selectedIndex];
+            data.transporter_name = selectedOption ? selectedOption.text : '';
+        }
         // Validate mã container
         if (!/^[A-Z]{4}[0-9]{7}$/.test(data.container_code)) {
             showToast('Mã số Container phải gồm 4 chữ cái in hoa + 7 số (VD: ABCD1234567)', 'error');
@@ -629,17 +633,10 @@ function showEditBookingModal(booking) {
                         if (company.name === currentValue) option.selected = true;
                         select.appendChild(option);
                     });
-                    if (currentValue && !companies.some(c => c.name === currentValue)) {
-                        const opt = document.createElement('option');
-                        opt.value = currentValue;
-                        opt.textContent = currentValue + ' (đã lưu)';
-                        opt.selected = true;
-                        select.insertBefore(opt, select.firstChild);
-                    }
                 }
             } catch (err) {}
         }
-        // Nhà xe
+        // Nhà xe và Số xe
         const selectTransporter = modal.querySelector('#edit-transporter');
         if (selectTransporter) {
             const currentValue = booking.transporter_name || '';
@@ -651,18 +648,11 @@ function showEditBookingModal(booking) {
                     selectTransporter.innerHTML = '<option value="">-- Chọn nhà xe --</option>';
                     transporters.forEach(trans => {
                         const option = document.createElement('option');
-                        option.value = trans.name;
+                        option.value = trans.id;
                         option.textContent = trans.name;
                         if (trans.name === currentValue) option.selected = true;
                         selectTransporter.appendChild(option);
                     });
-                    if (currentValue && !transporters.some(t => t.name === currentValue)) {
-                        const opt = document.createElement('option');
-                        opt.value = currentValue;
-                        opt.textContent = currentValue + ' (đã lưu)';
-                        opt.selected = true;
-                        selectTransporter.insertBefore(opt, selectTransporter.firstChild);
-                    }
                 }
             } catch (err) {}
         }
