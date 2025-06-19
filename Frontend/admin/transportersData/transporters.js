@@ -45,6 +45,12 @@ function renderTransporterRow(transporter) {
     updateButton.onclick = () => updateTransporter(transporter.id, transporter.name);
     actionsCell.appendChild(updateButton);
 
+    const detailsButton = document.createElement('button');
+    detailsButton.textContent = 'Chi tiết';
+    detailsButton.className = 'details';
+    detailsButton.onclick = () => showTransporterDetails(transporter.id, transporter.name);
+    actionsCell.appendChild(detailsButton);
+
     newRow.appendChild(actionsCell);
 
     return newRow;
@@ -176,3 +182,117 @@ function refreshData() {
 document.addEventListener('DOMContentLoaded', function() {
     fetchTransporters(1);
 });
+
+// Hiển thị modal chi tiết nhà xe và danh sách xe
+function showTransporterDetails(transporterId, transporterName) {
+    // Tạo modal nếu chưa có
+    let modal = document.getElementById('transporterDetailsModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'transporterDetailsModal';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.background = 'rgba(0,0,0,0.3)';
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.style.zIndex = 99999;
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+        <div style="background:#fff;padding:24px 20px 16px 20px;border-radius:10px;min-width:340px;max-width:95vw;max-height:90vh;overflow:auto;box-shadow:0 2px 16px rgba(0,0,0,0.18);">
+            <h2 style="margin-top:0;font-size:1.1rem;">Danh sách xe của nhà xe: <span style='color:#1976d2'>${transporterName}</span></h2>
+            <div id="truckListPanel"></div>
+            <form id="addTruckForm" style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <input type="text" id="truckLicense" placeholder="Biển số xe" required style="padding:6px 10px;border-radius:5px;border:1px solid #ccc;min-width:120px;">
+                <input type="text" id="truckModel" placeholder="Model (tùy chọn)" style="padding:6px 10px;border-radius:5px;border:1px solid #ccc;min-width:120px;">
+                <input type="text" id="truckDriver" placeholder="Tài xế (tùy chọn)" style="padding:6px 10px;border-radius:5px;border:1px solid #ccc;min-width:120px;">
+                <button type="submit" style="background:#2196F3;color:#fff;border:none;border-radius:5px;padding:7px 18px;font-weight:500;">Thêm xe</button>
+                <button type="button" id="closeTransporterDetailsBtn" style="background:red;color:#fff;border:none;border-radius:5px;padding:7px 18px;font-weight:500;">Đóng</button>
+            </form>
+        </div>
+    `;
+    modal.style.display = 'flex';
+    // Đóng modal
+    modal.querySelector('#closeTransporterDetailsBtn').onclick = function() {
+        modal.style.display = 'none';
+    };
+    // Xử lý thêm xe mới
+    modal.querySelector('#addTruckForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const license = modal.querySelector('#truckLicense').value.trim();
+        const model = modal.querySelector('#truckModel').value.trim();
+        const driver = modal.querySelector('#truckDriver').value.trim();
+        if (!license) {
+            alert('Vui lòng nhập biển số xe!');
+            return;
+        }
+        try {
+            const res = await fetch('http://localhost:3000/trucks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ license_plate: license, transporter_id: transporterId, model, driver_name: driver })
+            });
+            if (res.ok) {
+                loadTruckList(transporterId);
+                this.reset();
+            } else {
+                const msg = await res.text();
+                alert('Lỗi: ' + msg);
+            }
+        } catch (err) {
+            alert('Lỗi kết nối server!');
+        }
+    };
+    // Tải danh sách xe
+    loadTruckList(transporterId);
+}
+
+// Hàm tải danh sách xe của nhà xe
+async function loadTruckList(transporterId) {
+    const panel = document.getElementById('truckListPanel');
+    panel.innerHTML = '<div>Đang tải danh sách xe...</div>';
+    try {
+        const res = await fetch(`http://localhost:3000/trucks?transporter_id=${encodeURIComponent(transporterId)}`);
+        if (res.ok) {
+            const trucks = await res.json();
+            if (!trucks.length) {
+                panel.innerHTML = '<div style="color:#888;">Chưa có xe nào cho nhà xe này.</div>';
+                return;
+            }
+            let html = `<table style='width:100%;margin-top:10px;border-collapse:collapse;'><thead><tr><th>Biển số</th><th>Model</th><th>Tài xế</th><th>Hành động</th></tr></thead><tbody>`;
+            trucks.forEach(truck => {
+                html += `<tr>
+                    <td>${truck.license_plate}</td>
+                    <td>${truck.model||''}</td>
+                    <td>${truck.driver_name||''}</td>
+                    <td><button onclick="deleteTruck(${truck.id}, '${truck.transporter_id}')" style='background:#e53935;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;'>Xóa</button></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            panel.innerHTML = html;
+        } else {
+            panel.innerHTML = '<div style="color:red;">Lỗi tải danh sách xe!</div>';
+        }
+    } catch (err) {
+        panel.innerHTML = '<div style="color:red;">Lỗi kết nối server!</div>';
+    }
+}
+
+// Hàm xóa xe
+async function deleteTruck(truckId, transporterId) {
+    if (!confirm('Bạn có chắc chắn muốn xóa xe này?')) return;
+    try {
+        const res = await fetch(`http://localhost:3000/trucks/${truckId}`, { method: 'DELETE' });
+        if (res.ok) {
+            loadTruckList(transporterId);
+        } else {
+            alert('Lỗi xóa xe!');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối server!');
+    }
+}

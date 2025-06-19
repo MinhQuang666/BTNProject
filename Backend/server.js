@@ -1022,6 +1022,60 @@ app.get('/xac-nhan/all', async (req, res) => {
     }
 });
 
+// Lấy danh sách xe theo transporter_id
+app.get('/trucks', async (req, res) => {
+    const { transporter_id } = req.query;
+    if (!transporter_id) {
+        return res.status(400).send('transporter_id là bắt buộc.');
+    }
+    try {
+        const result = await pool.query(
+            'SELECT * FROM trucks WHERE transporter_id = $1 ORDER BY id',
+            [transporter_id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching trucks:', err);
+        res.status(500).send('Lỗi khi lấy danh sách xe.');
+    }
+});
+
+// Thêm xe mới cho nhà xe
+app.post('/trucks', async (req, res) => {
+    const { license_plate, transporter_id, model, driver_name, note } = req.body;
+    if (!license_plate || !transporter_id) {
+        return res.status(400).send('Biển số xe và transporter_id là bắt buộc.');
+    }
+    try {
+        const result = await pool.query(
+            'INSERT INTO trucks (license_plate, transporter_id, model, driver_name, note) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [license_plate, transporter_id, model, driver_name, note]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        if (err.code === '23505') { // unique_violation
+            return res.status(409).send('Biển số xe đã tồn tại.');
+        }
+        console.error('Error adding truck:', err);
+        res.status(500).send('Lỗi khi thêm xe.');
+    }
+});
+
+// Xóa xe theo id
+app.delete('/trucks/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM trucks WHERE id = $1', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).send('Không tìm thấy xe.');
+        }
+        res.status(200).send('Xe đã được xóa.');
+    } catch (err) {
+        console.error('Error deleting truck:', err);
+        res.status(500).send('Lỗi khi xóa xe.');
+    }
+});
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });

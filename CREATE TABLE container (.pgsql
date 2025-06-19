@@ -19,6 +19,14 @@ CREATE TABLE transporters (
     id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(70)
 );
+CREATE TABLE trucks (
+    id SERIAL PRIMARY KEY,
+    license_plate VARCHAR(20) NOT NULL UNIQUE, -- Biển số xe
+    transporter_id VARCHAR(50) REFERENCES transporters(id) ON DELETE CASCADE, -- Nhà xe sở hữu
+    model VARCHAR(100), -- Model xe (tùy chọn)
+    driver_name VARCHAR(100), -- Tên tài xế (tùy chọn)
+    note TEXT -- Ghi chú thêm
+);
 CREATE TABLE locations (
     id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(255),
@@ -36,20 +44,12 @@ CREATE TABLE containers (
 
 );
 
-CREATE TABLE trucks (
-    id SERIAL PRIMARY KEY,
-    license_plate VARCHAR(20) NOT NULL UNIQUE, -- Biển số xe
-    transporter_id VARCHAR(50) REFERENCES transporters(id) ON DELETE CASCADE, -- Nhà xe sở hữu
-    model VARCHAR(100), -- Model xe (tùy chọn)
-    driver_name VARCHAR(100), -- Tên tài xế (tùy chọn)
-    note TEXT -- Ghi chú thêm
-);
+
 CREATE TABLE container_transactions (
     id SERIAL PRIMARY KEY,
     container_id INT REFERENCES containers(id),
     company_id INT REFERENCES companies(id),
     transporter_id VARCHAR(50) REFERENCES transporters(id),
-    truck_id INT REFERENCES trucks(id), -- Liên kết với xe kéo
     pickup_location_id VARCHAR(50) REFERENCES locations(id),
     dropoff_location_id VARCHAR(50) REFERENCES locations(id),
     transaction_date DATE NOT NULL
