@@ -7,6 +7,8 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     // Trim container code before using
     const rawContainerCode = document.getElementById('containerNo').value;
     const trimmedContainerCode = rawContainerCode.trim();
+    const trucksNoSelect = document.getElementById('trucks_No');
+    const trucksNoValue = trucksNoSelect ? trucksNoSelect.value : '';
     const bookingData = {
         pickup_date: document.getElementById('pickupDate').value,
         company_name: companySelect.options[companySelect.selectedIndex].text,
@@ -19,14 +21,11 @@ document.getElementById('bookingForm').addEventListener('submit', async function
         size: document.getElementById('size').value,
         pickup_location: document.getElementById('pickupLocation').value,
         dropoff_location: document.getElementById('dropoffLocation').value,
-        extra_fee: document.getElementById('extraFee').value || 0
+        extra_fee: document.getElementById('extraFee').value || 0,
+        invoice_company: document.getElementById('invoiceCompany').value.trim(),
+        shipping_line: document.getElementById('shippingLine').value.trim(),
+        trucks_No: trucksNoValue // Lấy đúng value từ select
     };
-
-    // Lấy thêm dữ liệu từ form
-    const invoiceCompany = document.getElementById('invoiceCompany').value.trim();
-    const shippingLine = document.getElementById('shippingLine').value.trim();
-    bookingData.invoice_company = invoiceCompany;
-    bookingData.shipping_line = shippingLine;
 
     // Validate container code format after trim
     if (!/^[A-Z]{4}[0-9]{7}$/.test(trimmedContainerCode)) {
@@ -38,7 +37,6 @@ document.getElementById('bookingForm').addEventListener('submit', async function
 
     // Gọi API backend để lưu booking
     try {
-        // Thêm trucks_No vào body khi gọi API
         const response = await fetch('http://localhost:3000/bookings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -67,7 +65,6 @@ document.getElementById('bookingForm').addEventListener('submit', async function
                 const errorText = await response.text();
                 showToast('Lỗi: ' + errorText, 'error');
             }
-            // Không reset form nếu lỗi
         }
     } catch (err) {
         hideSpinner();
