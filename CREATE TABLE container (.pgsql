@@ -125,6 +125,3 @@ CREATE TABLE booking_details (
 );
 
 
--- Mỗi container_transactions sẽ liên kết với 1 xe kéo (truck_id)
-
-

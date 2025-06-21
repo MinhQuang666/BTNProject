@@ -11,18 +11,52 @@
 ## Công nghệ sử dụng
 - Backend: Node.js (REST API)
 - Frontend: HTML, JavaScript, CSS thuần
-- Database: (tuỳ cấu hình thực tế)
+- Database: PostgreSQL
 - Không sử dụng framework lớn, không phải WordPress
 - Tận dụng AI (Copilot) để tăng tốc phát triển
 
-## Cam kết phát triển
-Tôi cam kết sẽ tiếp tục nâng cấp, mở rộng dự án này theo nhu cầu thực tế, cập nhật công nghệ mới, bổ sung tính năng, và tối ưu hiệu năng/bảo mật.
+## Hướng dẫn cài đặt & sử dụng
+### 1. Tạo database PostgreSQL
+- Cài đặt PostgreSQL (https://www.postgresql.org/download/)
+- Tạo database mới, ví dụ: `CongTyVanTai`
+- Mở công cụ quản lý (pgAdmin hoặc psql), chạy toàn bộ nội dung file `CREATE TABLE container (.pgsql` để tạo các bảng cần thiết:
+  ```sql
+  -- Trong psql:
+  \c CongTyVanTai
+  \i 'd:/Myproject/BTNProject/CREATE TABLE container (.pgsql'
+  ```
+- Đảm bảo các bảng như `bookings`, `booking_details`, `companies`, `containers`, `transporters`, `trucks`, ... đã được tạo thành công.
 
-## Hướng dẫn cài đặt/chạy thử
-1. Cài đặt Node.js
-2. Cài đặt package: `npm install` trong thư mục Backend 
-3. Chạy server: `node server.js`
-4. Mở các file HTML trong thư mục Frontend bằng trình duyệt
+### 2. Cấu hình kết nối database cho backend
+- Mở file `Backend/server.js`, chỉnh lại các thông tin:
+  ```js
+  const pool = new Pool({
+      user: 'postgres', // Tên user PostgreSQL
+      host: 'localhost',
+      database: 'CongTyVanTai', // Tên database vừa tạo
+      password: '1', // Mật khẩu PostgreSQL
+      port: 5432,
+  });
+  ```
+- (Tùy chọn) Sử dụng file `.env` để bảo mật thông tin kết nối.
 
-## Liên hệ
-Nếu bạn là nhà tuyển dụng hoặc khách hàng quan tâm, vui lòng liên hệ để trao đổi thêm về dự án hoặc hợp tác phát triển.
+### 3. Cài đặt & chạy backend
+- Mở terminal, chuyển vào thư mục `Backend`:
+  ```sh
+  cd Backend
+  npm install
+  node server.js
+  ```
+- Server sẽ chạy tại `http://localhost:3000`
+
+### 4. Sử dụng giao diện web
+- Mở các file HTML trong thư mục `Frontend` bằng trình duyệt (khuyên dùng Chrome/Edge):
+  - `Frontend/employerHome/Booking/booking.html` (Quản lý booking)
+  - `Frontend/employerHome/ContainerCharge/ContainerCharge.html` (Tính phí container)
+  - ...
+- Thao tác CRUD, lọc, popup, tính phí, xuất Excel, ... đều thực hiện trực tiếp trên giao diện.
+
+### 5. Một số lưu ý
+- Đảm bảo backend luôn chạy trước khi thao tác trên giao diện web.
+- Nếu thay đổi cấu trúc bảng, cần chạy lại file `.pgsql` và khởi động lại backend.
+- Nếu gặp lỗi kết nối database, kiểm tra lại thông tin kết nối và trạng thái PostgreSQL.
